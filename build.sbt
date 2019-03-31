@@ -8,7 +8,9 @@ scalaVersion := "2.12.6"
 libraryDependencies ++= List(
   "org.scalaz" %% "scalaz-core" % "7.2.23",
   "org.specs2" %% "specs2-core" % "4.2.0" % "test",
-  "com.github.ornicar" %% "scalalib" % "6.6"
+  "com.github.ornicar" %% "scalalib" % "6.6",
+  "com.typesafe.akka" %% "akka-http" % "10.1.8",
+  "com.typesafe.akka" %% "akka-stream" % "2.5.19"
 )
 
 resolvers ++= Seq(
@@ -21,7 +23,7 @@ scalacOptions ++= Seq(
   "-Xfatal-warnings",
   "-Ywarn-unused-import", "-Ywarn-value-discard", "-Ywarn-dead-code",
   "-Xlint:missing-interpolator",
-  "-Xdelambdafy:method", "-target:jvm-1.8"
+  "-Ydelambdafy:method", "-target:jvm-1.8"
 )
 
 publishTo := Some(Resolver.file("file", new File(sys.props.getOrElse("publishTo", ""))))
