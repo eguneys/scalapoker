@@ -20,7 +20,13 @@ trait HandValueSolver {
 }
 
 object HighCard extends HandValueSolver {
-  def solve(hand: Hand) = Some(HighCard(Rank.Three, Nil))
+  def solve(hand: Hand) = {
+    val wildCards = Card.wildSort(hand.cards)
+
+    val high = cards.head.rank
+
+    return HighCard(high, cards)
+  }
 }
 
 object OnePair extends HandValueSolver {
