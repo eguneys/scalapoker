@@ -11,18 +11,12 @@ class ScoreTest extends PokerTest {
     val hand4: Hand = "5h 5c 7s 6c Ts 9s 2d"
     val hand5: Hand = "5h 6s Jh 7c 2s Ts 8d"
 
-    "should sort hand" in {
-      hand1.sorted must_== stringToList("As Kh Tc 5d 3c 3s 2h")
-      hand2.sorted must_== stringToList("Qd Qh 8d 8s Ad Tc 9c")
-      hand3.sorted must_== stringToList("4s 4h Ah Jc Ts 8d 7s")
-      hand5.sorted must_== stringToList("Jh Ts 8d 7c 6s 5h 2s")
-    }
     "should find hand value" in {
-      hand1.value must_== OnePair(Three)
-      hand2.value must_== TwoPair(Eight, Queen)
-      hand3.value must_== OnePair(Four)
-      hand4.value must_== OnePair(Five)
-      hand5.value must_== HighCard(Jack)
+      hand1.value must_== OnePair(Three, "As Kh Tc 5d 3c 3s 2h")
+      hand2.value must_== TwoPair(Eight, Queen, "Qd Qh 8d 8s Ad Tc 9c")
+      hand3.value must_== OnePair(Four, "4s 4h Ah Jc Ts 8d 7s")
+      hand4.value must_== OnePair(Five, "5h 5c Ts 9s 7s 6c 2d")
+      hand5.value must_== HighCard(Jack, "Jh Ts 8d 7c 6s 5h 2s")
     }
   }
 
@@ -30,7 +24,7 @@ class ScoreTest extends PokerTest {
     val hand: Hand = "5c 6s 6h 7c 5d Ts 8d"
 
     "should find hand value" in {
-      hand.value must_== TwoPair(Six, Five)
+      hand.value must_== TwoPair(Six, Five, "6s 6h 5c 5d Ts 8d 7c")
     }
   }
 
