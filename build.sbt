@@ -9,7 +9,7 @@ libraryDependencies ++= List(
   "org.scalaz" %% "scalaz-core" % "7.2.23",
   "org.specs2" %% "specs2-core" % "4.2.0" % "test",
   "org.specs2" %% "specs2-scalaz" % "4.2.0" % "test",
-  "com.github.ornicar" %% "scalalib" % "6.6",
+  "com.github.ornicar" %% "scalalib" % "6.6"
 )
 
 resolvers ++= Seq(
