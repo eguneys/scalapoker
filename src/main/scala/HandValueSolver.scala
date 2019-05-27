@@ -33,7 +33,7 @@ case class OnePairSolver(dependencies: SolverDependencies) extends HandValueSolv
   import dependencies._
 
   def solve = {
-    val result = ranks.find { case (rank, card) =>
+    val result = ranks.find { case (rank, _) =>
       nbCardsByRank(rank) == 2
     } map {
       case (highRank, twoCards) =>
@@ -81,7 +81,7 @@ case class ThreeOfAKindSolver(dependencies: SolverDependencies) extends HandValu
   import dependencies._
 
   def solve = {
-    val result = ranks.find { case (rank, card) =>
+    val result = ranks.find { case (rank, _) =>
       nbCardsByRank(rank) == 3
     } map {
       case (highRank, threeCards) =>
@@ -119,11 +119,30 @@ case class StraightSolver(dependencies: SolverDependencies) extends HandValueSol
   }
 }
 
+case class FlushSolver(dependencies: SolverDependencies) extends HandValueSolver {
+  import dependencies._
+
+  def solve = {
+    suits.find {
+      case (_, cards) => cards.length >= 5
+    } map { 
+      case (_, cards) =>
+        Flush(cards.head.rank, cards.take(5))
+    }
+  }
+}
+
 object HandValueSolver {
 
   def solve(hand: Hand): HandValue = {
     val dependencies = SolverDependencies(hand)
-    val all: List[HandValueSolver] = List(StraightSolver(dependencies), ThreeOfAKindSolver(dependencies), TwoPairSolver(dependencies), OnePairSolver(dependencies), HighCardSolver(dependencies))
+    val all: List[HandValueSolver] = List(
+      FlushSolver(dependencies),
+      StraightSolver(dependencies),
+      ThreeOfAKindSolver(dependencies),
+      TwoPairSolver(dependencies),
+      OnePairSolver(dependencies),
+      HighCardSolver(dependencies))
 
     all.foldLeft[Option[HandValue]](None) {
       case (None, solver) => solver.solve

@@ -47,7 +47,7 @@ class ScoreTest extends PokerTest {
   }
 
   "straight" should {
-    val hand: Hand = "5c 6s 3s 2s 5s 4s 5c"
+    val hand: Hand = "5c 6s 3s 2h 5h 4s 5c"
     val hand2: Hand = "5d 6s 7s 8c Ts 9s 2d"
     val hand3: Hand = "5h 6s 6h 7c 2s Ts 8d"
     val hand4: Hand = "5h 6s 6h 7c 3s Ts 8d"
@@ -55,7 +55,7 @@ class ScoreTest extends PokerTest {
     val hand6: Hand = "1h 2s 4h 3c 6h 7d 5c"
 
     "should find straight" in {
-      hand.value must_== Straight(Six, "6s 5c 4s 3s 2s")
+      hand.value must_== Straight(Six, "6s 5c 4s 3s 2h")
       hand2.value must_== Straight(Ten, "Ts 9s 8c 7s 6s")
       hand3.value must_== OnePair(Six, "6s 6h Ts 8d 7c")
       hand4.value must_== OnePair(Six, "6s 6h Ts 8d 7c")
@@ -93,6 +93,16 @@ class ScoreTest extends PokerTest {
 
       lowHand.value must_== Straight(Five, "5c 4h 3s 2s as")
       highHand.value must_== Straight(Six, "6s 5c 4h 3s 2s")
+    }
+  }
+
+  "flush" should {
+    val hand: Hand = "4h Th 5h Ac 2h Kh 8d"
+    val hand2: Hand = "4s Th 5h Ac 2h Kh 8d"
+
+    "should find flush" in {
+      hand.value must_== Flush(King, "Kh Th 5h 4h 2h")
+      hand2.value must_== HighCard(Ace, "Ac Kh Th 8d 5h")
     }
   }
 }

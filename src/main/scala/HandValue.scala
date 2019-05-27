@@ -22,3 +22,7 @@ case class ThreeOfAKind(high: Rank, sorted: List[Card]) extends HandValue {
 case class Straight(high: Rank, sorted: List[Card]) extends HandValue {
   val rank = 5
 }
+
+case class Flush(high: Rank, sorted: List[Card]) extends HandValue {
+  val rank = 6
+}
