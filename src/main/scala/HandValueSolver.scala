@@ -132,10 +132,24 @@ case class FullHouseSolver(hand: Hand) extends HandValueSolver {
   }
 }
 
+case class FourOfAKindSolver(hand: Hand) extends HandValueSolver {
+
+  def solve = {
+    (ranks.find { case (rank, _) =>
+      nbCardsByRank(rank) == 4
+    }) map {
+      case (rank, fours) =>
+        val otherHighs = sortedCards.filterNot(fours.contains(_))
+        FourOfAKind(rank, (fours ++ otherHighs).take(5))
+    }
+  }
+}
+
 object HandValueSolver {
 
   def solve(hand: Hand): HandValue = {
     val all: List[HandValueSolver] = List(
+      FourOfAKindSolver(hand),
       FullHouseSolver(hand),
       FlushSolver(hand),
       StraightSolver(hand),

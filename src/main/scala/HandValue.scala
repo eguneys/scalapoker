@@ -30,3 +30,7 @@ case class Flush(high: Rank, sorted: List[Card]) extends HandValue {
 case class FullHouse(high: Rank, low: Rank, sorted: List[Card]) extends HandValue {
   val rank = 7
 }
+
+case class FourOfAKind(high: Rank, sorted: List[Card]) extends HandValue {
+  val rank = 8
+}

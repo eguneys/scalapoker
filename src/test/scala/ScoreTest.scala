@@ -138,4 +138,14 @@ class ScoreTest extends PokerTest {
 
     }
   }
+
+  "four of a kind" should {
+    val hand: Hand = "7h 7d 3s 2c 7s 7c 4s"
+    val hand2: Hand = "7h 3d 3s 2c 7s 7c 4s"
+
+    "should find four of a kind" in {
+      hand.value must_== FourOfAKind(Seven, "7h 7d 7s 7c 4s")
+      hand2.value must_== FullHouse(Seven, Three, "7h 7s 7c 3d 3s")
+    }
+  }
 }
