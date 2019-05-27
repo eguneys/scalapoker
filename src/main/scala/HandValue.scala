@@ -2,6 +2,8 @@ package poker
 
 trait HandValue {
   val rank: Int
+
+  val high: Rank
   val sorted: List[Card]
 }
 
@@ -33,4 +35,8 @@ case class FullHouse(high: Rank, low: Rank, sorted: List[Card]) extends HandValu
 
 case class FourOfAKind(high: Rank, sorted: List[Card]) extends HandValue {
   val rank = 8
+}
+
+case class StraightFlush(high: Rank, sorted: List[Card]) extends HandValue {
+  val rank = 9
 }

@@ -14,7 +14,7 @@ object Card {
   def wildCards(cards: List[Card]): WildCards[List[Card]] = WildCards(cards, cards.map {
     case Card(Ace, v) => Card(AceLow, v)
     case a => a
-  })
+  }).map(a => a.sortWith(_.rank.value > _.rank.value))
 }
 
 case class WildCards[A](high: A, low: A) {

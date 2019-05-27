@@ -148,4 +148,16 @@ class ScoreTest extends PokerTest {
       hand2.value must_== FullHouse(Seven, Three, "7h 7s 7c 3d 3s")
     }
   }
+
+  "straight flush" should {
+    val hand: Hand = "Qd 7s 8s Js Kh Ts 9s"
+    val hand2: Hand = "Qd 7s 8s Js Kh Ts 9d"
+    val hand3: Hand = "Ad 2d 3d 4d 5d Ts 9d"
+
+    "should find straight flush" in {
+      hand.value must_== StraightFlush(Jack, "Js Ts 9s 8s 7s")
+      hand2.value must_== Straight(King, "Kh Qd Js Ts 9d")
+      hand3.value must_== StraightFlush(Five, "5d 4d 3d 2d ad")
+    }
+  }
 }
