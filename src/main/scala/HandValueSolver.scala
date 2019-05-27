@@ -49,15 +49,13 @@ case class HighCardSolver(hand: Hand) extends HandValueSolver {
 case class OnePairSolver(hand: Hand) extends HandValueSolver {
 
   def solve = {
-    val result = ranks.find { case (rank, _) =>
+    ranks.find { case (rank, _) =>
       nbCardsByRank(rank) == 2
     } map {
       case (highRank, twoCards) =>
         val otherHighs = sortedCards.filterNot(twoCards.contains(_))
-        (highRank, (twoCards ++ otherHighs).take(5))
+        OnePair(highRank, (twoCards ++ otherHighs).take(5))
     }
-
-    result.map(r => OnePair(r._1, r._2))
   }
 }
 
@@ -82,22 +80,20 @@ case class TwoPairSolver(hand: Hand) extends HandValueSolver {
 case class ThreeOfAKindSolver(hand: Hand) extends HandValueSolver {
 
   def solve = {
-    val result = ranks.find { case (rank, _) =>
+    ranks.find { case (rank, _) =>
       nbCardsByRank(rank) == 3
     } map {
       case (highRank, threeCards) =>
         val otherHighs = sortedCards.filterNot(threeCards.contains(_))
         ThreeOfAKind(highRank, (threeCards ++ otherHighs).take(5))
     }
-    result
   }
 }
 
 case class StraightSolver(hand: Hand) extends HandValueSolver {
 
   def solve = {
-    val oCards = findHighestStraight(Rank.allSorted)
-    oCards map { cards =>
+    findHighestStraight(Rank.allSorted) map { cards =>
       Straight(cards.head.rank, cards.take(5))
     }
   }

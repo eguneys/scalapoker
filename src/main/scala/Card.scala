@@ -18,23 +18,12 @@ object Card {
 }
 
 case class WildCards[A](high: A, low: A) {
-  def apply(side: WildSide) = side match {
-    case High => high
-    case Low => low
-  }
 
   def map[B](f: (A) => B): WildCards[B] =
     WildCards(f(high), f(low))
-
-  def map2[B](f: (WildSide, A) => B): WildCards[B] =
-    WildCards(f(High, high), f(Low, low))
 
   def find(p: A => Boolean): Option[A] =
     if (p(high)) Some(high)
     else if (p(low)) Some(low)
     else None
 }
-
-trait WildSide
-object High extends WildSide
-object Low extends WildSide

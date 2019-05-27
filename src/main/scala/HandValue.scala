@@ -11,8 +11,6 @@ trait HandValue {
   }
 
   def magic = (rank * 9999) + kickers
-
-  def <>(other: HandValue) = magic - other.magic
 }
 
 case class HighCard(high: Rank, sorted: List[Card]) extends HandValue {
