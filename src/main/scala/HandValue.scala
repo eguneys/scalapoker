@@ -26,3 +26,7 @@ case class Straight(high: Rank, sorted: List[Card]) extends HandValue {
 case class Flush(high: Rank, sorted: List[Card]) extends HandValue {
   val rank = 6
 }
+
+case class FullHouse(high: Rank, low: Rank, sorted: List[Card]) extends HandValue {
+  val rank = 7
+}

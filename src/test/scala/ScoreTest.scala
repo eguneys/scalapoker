@@ -28,17 +28,20 @@ class ScoreTest extends PokerTest {
   "two pair" should {
     val hand: Hand = "5c 6s 6h 7c 5d Ts 8d"
     val hand2: Hand = "8d 8s Qd Ad Qh Tc 9c"
+    val hand3: Hand = "5h 3h 3c 5d 2s Ts Td"
+
 
     "should find two pair" in {
       hand.value must_== TwoPair(Six, Five, "6s 6h 5c 5d Ts")
       hand2.value must_== TwoPair(Queen, Eight, "Qd Qh 8d 8s Ad")
+      hand3.value must_== TwoPair(Ten, Five, "Ts Td 5h 5d 3h")
     }
   }
 
 
   "three of a kind" should {
     val hand: Hand = "5c 5s 5h 6c Td 9s 2d"
-    val hand2: Hand = "5c 2h Ah Ac 9s As 2d"
+    val hand2: Hand = "5c 2h Ah Ac 9s As 3d"
 
     "should find three pair" in {
       hand.value must_== ThreeOfAKind(Five, "5c 5s 5h Td 9s")
@@ -103,6 +106,36 @@ class ScoreTest extends PokerTest {
     "should find flush" in {
       hand.value must_== Flush(King, "Kh Th 5h 4h 2h")
       hand2.value must_== HighCard(Ace, "Ac Kh Th 8d 5h")
+    }
+  }
+
+  "full house" should {
+    val hand: Hand = "Qd Js 3h Qc 7d Jc Jd"
+    val hand2: Hand = "9c 9d Jh Jc Js 9h As"
+
+    "should find full house" in {
+      hand.value must_== FullHouse(Jack, Queen, "Js Jc Jd Qd Qc")
+      hand2.value must_== FullHouse(Jack, Nine, "Jh Jc Js 9c 9d")
+    }
+
+    "should not find full house" in {
+      val hand: Hand = "5h 3h 3c 5d 2s Ts Td"
+      val hand2: Hand = "5s 9d Kd 6h 7s 7d Kh"
+      val hand3: Hand = "9h 9s 3d 5c Kd 5d Kh"
+
+      hand.value must_== TwoPair(Ten, Five, "Ts Td 5h 5d 3h")
+      hand2.value must_== TwoPair(King, Seven, "Kd Kh 7s 7d 9d")
+
+      hand3.value must_== TwoPair(King, Nine, "Kd Kh 9h 9s 5c")
+    }
+
+    "should pick high kickers" in {
+      val hand: Hand = "5d 5h 3h 3c Qh Qd Qs"
+      val hand2: Hand = "9c Qs 9h 5h Ts Qc Qh"
+
+      hand.value must_== FullHouse(Queen, Five, "Qh Qd Qs 5d 5h")
+      hand2.value must_== FullHouse(Queen, Nine, "Qs Qc Qh 9c 9h")
+
     }
   }
 }
