@@ -45,7 +45,39 @@ case class OnePairSolver(dependencies: SolverDependencies) extends HandValueSolv
 }
 
 case class TwoPairSolver(dependencies: SolverDependencies) extends HandValueSolver {
-  def solve = None
+  import dependencies._
+
+  def solve = {
+    val result = wildRanks.map2((wildSide, ranks) => {
+      val cards = wildCards(wildSide)
+
+      ranks.groupBy { case (rank, _) =>
+        nbCardsByRank(wildSide, rank)
+      } map {
+        case (2, twoCardMap) if twoCardMap.size == 2 =>
+
+          twoCardMap.toList match {
+            case List((rank1, cards1), (rank2, cards2)) if (rank1.value > rank2.value) => {
+              val twoCards = cards1 ++ cards2
+
+              val otherHighs = cards.filterNot(twoCards.contains(_))
+
+              Some(TwoPair(rank1, rank2, twoCards ++ otherHighs))
+            }
+            case List((rank1, cards1), (rank2, cards2)) if (rank1.value < rank2.value) => {
+              val twoCards = cards2 ++ cards1
+
+              val otherHighs = cards.filterNot(twoCards.contains(_))
+
+              Some(TwoPair(rank2, rank1, twoCards ++ otherHighs))
+            }
+            case _ => None
+          }
+        case _ => None
+      }
+    })(High)
+    result.find(_.isDefined).flatten
+  }
 }
 
 object HandValueSolver {

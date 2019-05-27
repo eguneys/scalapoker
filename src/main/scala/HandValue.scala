@@ -11,6 +11,6 @@ case class HighCard(high: Rank, sorted: List[Card]) extends HandValue {
 case class OnePair(high: Rank, sorted: List[Card]) extends HandValue {
   val rank = 2
 }
-case class TwoPair(high1: Rank, high2: Rank, sorted: List[Card]) extends HandValue {
+case class TwoPair(high: Rank, low: Rank, sorted: List[Card]) extends HandValue {
   val rank = 3
 }

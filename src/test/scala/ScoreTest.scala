@@ -31,7 +31,7 @@ class ScoreTest extends PokerTest {
 
     "should find two pair" in {
       hand.value must_== TwoPair(Six, Five, "6s 6h 5c 5d Ts 8d 7c")
-      hand2.value must_== TwoPair(Eight, Queen, "Qd Qh 8d 8s Ad Tc 9c")
+      hand2.value must_== TwoPair(Queen, Eight, "Qd Qh 8d 8s Ad Tc 9c")
     }
   }
 
