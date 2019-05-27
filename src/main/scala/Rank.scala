@@ -17,22 +17,32 @@ case class NormalRank(value: Int) extends Rank {
   }
 }
 
-case object WildRank extends Rank {
+case object AceHighRank extends Rank {
+  val value = 14
+  val forsyth = 'A'
+}
+
+case object AceLowRank extends Rank {
   val value = 1
   val forsyth = 'A'
 }
 
 object Rank {
 
-  val rankCache = new Array[Rank](13)
+  val rankCache = new Array[Rank](14)
 
   private[this] def createRank(r: Int): Rank = {
-    val rank = if (r == 1) WildRank else NormalRank(r)
+    val rank = r match {
+      case 14 => AceHighRank
+      case 1 => AceLowRank
+      case r => NormalRank(r)
+    }
     rankCache(r - 1) = rank
     rank
   }
 
-  val Ace = createRank(1)
+  val AceLow = createRank(1)
+  val Ace = createRank(14)
   val Two = createRank(2)
   val Three = createRank(3)
   val Four = createRank(4)

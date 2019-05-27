@@ -1,15 +1,21 @@
 package poker
 
 case class SolverDependencies(hand: Hand) {
-  val wildCards = Card.wildSort(hand.cards)
+  val sortedCards = hand.cards.sortWith(_.rank.value > _.rank.value)
 
-  val highCard = wildCards.high.head.rank
+  val ranks = sortedCards.groupBy(_.rank)
+
+  val suits = sortedCards.groupBy(_.suit)
+
+  val wildCards = Card.wildCards(sortedCards)
 
   val wildRanks = wildCards.map(_.groupBy(_.rank))
 
-  val wildSuits = wildCards.map(_.groupBy(_.rank))
 
-  def nbCardsByRank(side: WildSide, rank: Rank): Int = wildRanks(side).get(rank).map(_.length).getOrElse(0)
+
+  def nbCardsByRank(rank: Rank): Int = ranks.get(rank).map(_.length).getOrElse(0)
+
+  def findHighestStraight(): List[Card] = Nil
 }
 
 trait HandValueSolver {
@@ -21,7 +27,7 @@ case class HighCardSolver(dependencies: SolverDependencies) extends HandValueSol
   import dependencies._
 
   def solve() = {
-    Some(HighCard(highCard, wildCards.high))
+    Some(HighCard(sortedCards.head.rank, sortedCards.take(5)))
   }
 }
 
@@ -29,16 +35,13 @@ case class OnePairSolver(dependencies: SolverDependencies) extends HandValueSolv
   import dependencies._
 
   def solve = {
-    val result = wildRanks.map2((wildSide, ranks) => {
-      ranks.find { case (rank, card) =>
-        nbCardsByRank(wildSide, rank) == 2
-      } map {
-        case (highRank, twoCards) =>
-          val cards = wildCards(wildSide)
-          val otherHighs = cards.filterNot(twoCards.contains(_))
-          (highRank, twoCards ++ otherHighs)
-      }
-    })(High)
+    val result = ranks.find { case (rank, card) =>
+      nbCardsByRank(rank) == 2
+    } map {
+      case (highRank, twoCards) =>
+        val otherHighs = sortedCards.filterNot(twoCards.contains(_))
+        (highRank, (twoCards ++ otherHighs).take(5))
+    }
 
     result.map(r => OnePair(r._1, r._2))
   }
@@ -48,35 +51,57 @@ case class TwoPairSolver(dependencies: SolverDependencies) extends HandValueSolv
   import dependencies._
 
   def solve = {
-    val result = wildRanks.map2((wildSide, ranks) => {
-      val cards = wildCards(wildSide)
+    val result = ranks.groupBy { case (rank, _) =>
+      nbCardsByRank(rank)
+    } map {
+      case (2, twoCardMap) if twoCardMap.size == 2 =>
 
-      ranks.groupBy { case (rank, _) =>
-        nbCardsByRank(wildSide, rank)
-      } map {
-        case (2, twoCardMap) if twoCardMap.size == 2 =>
+        twoCardMap.toList match {
+          case List((rank1, cards1), (rank2, cards2)) if (rank1.value > rank2.value) => {
+            val twoCards = cards1 ++ cards2
 
-          twoCardMap.toList match {
-            case List((rank1, cards1), (rank2, cards2)) if (rank1.value > rank2.value) => {
-              val twoCards = cards1 ++ cards2
+            val otherHighs = sortedCards.filterNot(twoCards.contains(_))
 
-              val otherHighs = cards.filterNot(twoCards.contains(_))
-
-              Some(TwoPair(rank1, rank2, twoCards ++ otherHighs))
-            }
-            case List((rank1, cards1), (rank2, cards2)) if (rank1.value < rank2.value) => {
-              val twoCards = cards2 ++ cards1
-
-              val otherHighs = cards.filterNot(twoCards.contains(_))
-
-              Some(TwoPair(rank2, rank1, twoCards ++ otherHighs))
-            }
-            case _ => None
+            Some(TwoPair(rank1, rank2, (twoCards ++ otherHighs).take(5)))
           }
-        case _ => None
-      }
-    })(High)
+          case List((rank1, cards1), (rank2, cards2)) if (rank1.value < rank2.value) => {
+            val twoCards = cards2 ++ cards1
+
+            val otherHighs = sortedCards.filterNot(twoCards.contains(_))
+
+            Some(TwoPair(rank2, rank1, (twoCards ++ otherHighs).take(5)))
+          }
+          case _ => None
+        }
+      case _ => None
+    }
     result.find(_.isDefined).flatten
+  }
+}
+
+case class ThreeOfAKindSolver(dependencies: SolverDependencies) extends HandValueSolver {
+  import dependencies._
+
+  def solve = {
+    val result = ranks.find { case (rank, card) =>
+      nbCardsByRank(rank) == 3
+    } map {
+      case (highRank, threeCards) =>
+        val otherHighs = sortedCards.filterNot(threeCards.contains(_))
+        ThreeOfAKind(highRank, (threeCards ++ otherHighs).take(5))
+    }
+    result
+  }
+}
+
+case class StraightSolver(dependencies: SolverDependencies) extends HandValueSolver {
+  import dependencies._
+
+  def solve = {
+    val cards = findHighestStraight()
+    if (cards.length > 5) {
+      Some(Straight(cards.head.rank, cards.take(5)))
+    } else None
   }
 }
 
@@ -84,7 +109,7 @@ object HandValueSolver {
 
   def solve(hand: Hand): HandValue = {
     val dependencies = SolverDependencies(hand)
-    val all: List[HandValueSolver] = List(TwoPairSolver(dependencies), OnePairSolver(dependencies), HighCardSolver(dependencies))
+    val all: List[HandValueSolver] = List(StraightSolver(dependencies), ThreeOfAKindSolver(dependencies), TwoPairSolver(dependencies), OnePairSolver(dependencies), HighCardSolver(dependencies))
 
     all.foldLeft[Option[HandValue]](None) {
       case (None, solver) => solver.solve

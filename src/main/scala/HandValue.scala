@@ -14,3 +14,11 @@ case class OnePair(high: Rank, sorted: List[Card]) extends HandValue {
 case class TwoPair(high: Rank, low: Rank, sorted: List[Card]) extends HandValue {
   val rank = 3
 }
+
+case class ThreeOfAKind(high: Rank, sorted: List[Card]) extends HandValue {
+  val rank = 4
+}
+
+case class Straight(high: Rank, sorted: List[Card]) extends HandValue {
+  val rank = 5
+}

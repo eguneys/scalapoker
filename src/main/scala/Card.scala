@@ -9,26 +9,12 @@ case class Card(rank: Rank, suit: Suit) {
 }
 
 object Card {
+  import Rank._
 
-  def highSorter(a: Card, b: Card) =
-    (a.rank, b.rank) match {
-      case (WildRank, _) => true
-      case (_, WildRank) => false
-      case (NormalRank(v), NormalRank(vb)) => v > vb
-      case _ => false
-    }
-
-  def lowSorter(a: Card, b: Card) =
-    (a.rank, b.rank) match {
-      case (WildRank, _) => false
-      case (_, WildRank) => true
-      case (NormalRank(v), NormalRank(vb)) => v > vb
-      case _ => false
-    }
-
-
-  def wildSort(cards: List[Card]): WildCards[List[Card]] = WildCards(cards.sortWith(highSorter), cards.sortWith(lowSorter))
-
+  def wildCards(cards: List[Card]): WildCards[List[Card]] = WildCards(cards, cards.map {
+    case Card(Ace, v) => Card(AceLow, v)
+    case a => a
+  })
 }
 
 case class WildCards[A](high: A, low: A) {
