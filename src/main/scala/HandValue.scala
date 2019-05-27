@@ -5,6 +5,14 @@ trait HandValue {
 
   val high: Rank
   val sorted: List[Card]
+
+  def kickers = sorted.foldLeft(0) { (acc, card) =>
+    acc + card.rank.value
+  }
+
+  def magic = (rank * 9999) + kickers
+
+  def <>(other: HandValue) = magic - other.magic
 }
 
 case class HighCard(high: Rank, sorted: List[Card]) extends HandValue {
