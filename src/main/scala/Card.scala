@@ -28,6 +28,11 @@ case class WildCards[A](high: A, low: A) {
 
   def map2[B](f: (WildSide, A) => B): WildCards[B] =
     WildCards(f(High, high), f(Low, low))
+
+  def find(p: A => Boolean): Option[A] =
+    if (p(high)) Some(high)
+    else if (p(low)) Some(low)
+    else None
 }
 
 trait WildSide

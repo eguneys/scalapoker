@@ -7,15 +7,13 @@ case class SolverDependencies(hand: Hand) {
 
   val suits = sortedCards.groupBy(_.suit)
 
-  val wildCards = Card.wildCards(sortedCards)
+  val wildCards = Card.wildCards(sortedCards).map(a => a.sortWith(_.rank.value > _.rank.value))
 
   val wildRanks = wildCards.map(_.groupBy(_.rank))
 
 
 
   def nbCardsByRank(rank: Rank): Int = ranks.get(rank).map(_.length).getOrElse(0)
-
-  def findHighestStraight(): List[Card] = Nil
 }
 
 trait HandValueSolver {
@@ -98,10 +96,26 @@ case class StraightSolver(dependencies: SolverDependencies) extends HandValueSol
   import dependencies._
 
   def solve = {
-    val cards = findHighestStraight()
-    if (cards.length > 5) {
-      Some(Straight(cards.head.rank, cards.take(5)))
-    } else None
+    val oCards = findHighestStraight()
+    oCards map { cards =>
+      Straight(cards.head.rank, cards.take(5))
+    }
+  }
+
+  def findHighestStraight(): Option[List[Card]] = Rank.allSorted.foldLeft[Option[List[Card]]](None) {
+    case (None, iRank) =>
+      wildCards.map(cards => {
+        cards.foldLeft[List[Card]](Nil) {
+          case (acc @ (head :: tail), card) if (card.rank.value + 1 == head.rank.value) => {
+            card :: acc
+          }
+          case (Nil, card) if card.rank.value == iRank.value => {
+            List(card)
+          }
+          case (acc, _) => acc
+        }
+      }).find(_.length >= 5).map(_.reverse)
+    case (found, _) => found
   }
 }
 

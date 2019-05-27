@@ -24,7 +24,7 @@ case object AceHighRank extends Rank {
 
 case object AceLowRank extends Rank {
   val value = 1
-  val forsyth = 'A'
+  val forsyth = 'a'
 }
 
 object Rank {
@@ -57,6 +57,8 @@ object Rank {
   val King = createRank(13)
 
   val all = rankCache.toList
+
+  val allSorted = all.sortWith(_.value>_.value)
 
   val allByValue = all.map { rank => rank.value -> rank } toMap
   val allByForsyth = all.map { rank => rank.forsyth -> rank } toMap
