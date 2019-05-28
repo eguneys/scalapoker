@@ -4,13 +4,12 @@ case class Board(
   _stacks: AtLeastTwo[Int],
   button: Int,
   roundActs: AtLeastTwo[Option[Act]],
-  history: List[AtLeastTwo[Act]]) {
+  history: List[AtLeastTwo[Act]],
+  lastRaise: Option[Raise] = None) {
 
   val stacks = _stacks.toList
 
-  val dealer = Dealer(stacks.length)
-
-  val players = dealer.nbPlayers
+  val players = stacks.length
 
   val smallBlind = (button + 1) % players
   val bigBlind = (button + 2) % players
