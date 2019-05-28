@@ -17,7 +17,7 @@ object Visual {
   private def writeAct(act: Option[Act]) = act match {
     case Some(r@Raise(amount)) => r.forsyth.toUpper + amount
     case Some(act) => act.forsyth.toUpper.toString
-    case _ => " "
+    case _ => "."
   }
 
   def <<(source: String): Board = {
@@ -44,14 +44,10 @@ object Visual {
           case _ => false
         }
       }.get._2,
-      history = history match {
-        case Nil => stacks.map(_ => Nil).toList
-        case xs => xs map { acts =>
-          acts.map { readAct(_).get }.toList
-        }
+      history = history map { acts =>
+        acts.map { readAct(_).get }.toList: AtLeastTwo[Act]
       },
-      roundActs = roundActs.map { readAct(_)
-      }.toList
+      roundActs = roundActs.map { readAct(_) }.toList
     )
   }
 
@@ -66,7 +62,7 @@ object Visual {
     val roundActs = board.roundActs.map(writeAct(_)).toList mkString " "
 
     val history = board.history.map { acts =>
-      acts.map { act => writeAct(Some(act)) } mkString " "
+      acts.map { act => writeAct(Some(act)) }.toList mkString " "
     }.toList mkString "\n"
 
     (stacks ++ "\n" ++

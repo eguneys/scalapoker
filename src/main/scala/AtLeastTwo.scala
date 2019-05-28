@@ -1,6 +1,6 @@
 package poker
 
-final case class AtLeastTwo[A](first: A, second: A, tail: List[A]) {
+final case class AtLeastTwo[A](first: A, second: A, tail: List[A] = Nil) {
 
   def toList: List[A] = first :: second :: tail
 

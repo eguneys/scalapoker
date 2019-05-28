@@ -111,6 +111,23 @@ class BoardTest extends PokerTest {
       ) must beNone
     }
 
+    "dont allow next round" in {
+      twoPlayer.nextRound must beNone
+      threePlayer.nextRound must beNone
+      fourPlayer.nextRound must beNone
+    }
+
+    "allow next round" in {
+      twoPlayer.seq(
+        _ check,
+        _ check,
+        _ nextRound) must beSome.like {
+        case b =>
+          b.roundActs must_== AtLeastTwo(None, None)
+          b.history must_== List(AtLeastTwo(Check, Check))
+      }
+    }
+
   }
 
 }

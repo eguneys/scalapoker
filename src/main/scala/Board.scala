@@ -4,7 +4,7 @@ case class Board(
   _stacks: AtLeastTwo[Int],
   button: Int,
   roundActs: AtLeastTwo[Option[Act]],
-  history: AtLeastTwo[RoundActs]) {
+  history: List[AtLeastTwo[Act]]) {
 
   val stacks = _stacks.toList
 
@@ -37,12 +37,7 @@ case class Board(
       None
     else
       Some(copy(
-        history = history.zipWith(roundActs) {
-          case (acts, Some(act)) =>
-            act :: acts
-          case (acts, None) =>
-            acts
-        },
+        history = roundActs.map(_.get) :: history,
         roundActs = _stacks.map(_ => None)
       ))
 
@@ -56,6 +51,12 @@ case class Board(
       roundActs.updated(toAct, Some(act)))
   }
 
+
+  def visual = format.Visual >> this
+
+  override def toString = List(
+    visual
+  ) mkString "\n"
 }
 
 object Board {
@@ -64,6 +65,6 @@ object Board {
     Board(_stacks = stacks,
       button = button,
       roundActs = stacks.map(_ => None),
-      history = stacks.map(_ => Nil))
+      history = Nil)
 
 }
