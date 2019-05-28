@@ -1,9 +1,13 @@
 package poker
 
 case class Board(
-  dealer: Dealer,
+  _stacks: AtLeastTwo[Int],
   button: Int,
   roundActs: List[Act]) {
+
+  val stacks = _stacks.toList
+
+  val dealer = Dealer(stacks.length)
 
   val players = dealer.nbPlayers
 
@@ -36,7 +40,7 @@ case class Board(
 
 object Board {
 
-  def apply(nbPlayers: Int, button: Int): Board =
-    Board(Dealer(nbPlayers), button, Nil)
+  def apply(stacks: AtLeastTwo[Int], button: Int): Board =
+    Board(stacks, button, Nil)
 
 }

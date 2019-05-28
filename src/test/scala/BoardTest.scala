@@ -4,9 +4,9 @@ class BoardTest extends PokerTest {
 
   "a board" should {
 
-    val twoPlayer = makeBoard(2)
-    val threePlayer = makeBoard(3)
-    val fourPlayer = makeBoard(4)
+    val twoPlayer = makeBoard(List.fill(2)(10))
+    val threePlayer = makeBoard(List.fill(3)(10))
+    val fourPlayer = makeBoard(List.fill(4)(10))
 
     "decide small blind and big blind" in {
 
