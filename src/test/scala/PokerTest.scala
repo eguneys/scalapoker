@@ -10,4 +10,7 @@ trait PokerTest extends Specification with ValidationMatchers {
 
   implicit def stringToList(str: String): List[Card] = Visual.list(str)
 
+
+  def makeBoard(nbPlayers: Int): Board =
+    Board(nbPlayers, 0)
 }
