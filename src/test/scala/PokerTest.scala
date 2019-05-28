@@ -1,14 +1,14 @@
 package poker
 
-import poker.format.{ Visual }
+import poker.format.{ HandVisual }
 import org.specs2.matcher.{ ValidationMatchers }
 import org.specs2.mutable.Specification
 
 trait PokerTest extends Specification with ValidationMatchers {
 
-  implicit def stringToHand(str: String): Hand = Visual << str
+  implicit def stringToHand(str: String): Hand = HandVisual << str
 
-  implicit def stringToList(str: String): List[Card] = Visual.list(str)
+  implicit def stringToList(str: String): List[Card] = HandVisual.list(str)
 
 
   def makeBoard(stacks: List[Int]): Board =

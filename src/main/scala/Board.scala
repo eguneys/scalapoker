@@ -3,7 +3,8 @@ package poker
 case class Board(
   _stacks: AtLeastTwo[Int],
   button: Int,
-  roundActs: List[Act]) {
+  roundActs: AtLeastTwo[Option[Act]],
+  history: AtLeastTwo[RoundActs]) {
 
   val stacks = _stacks.toList
 
@@ -18,9 +19,9 @@ case class Board(
 
   val firstToActOnFlop = (button + 1) % players
 
-  private val nextToAct = (firstToAct + roundActs.length) % players
+  private val nextToAct = (firstToAct + roundActs.filter(_.isDefined).length) % players
 
-  val allPlayersMoved = roundActs.length == players
+  val allPlayersMoved = !roundActs.exists(!_.isDefined)
 
   val toAct = if (!allPlayersMoved)
     Some(nextToAct)
@@ -31,16 +32,38 @@ case class Board(
   def seq(actions: Board => Option[Board]*): Option[Board] =
     actions.foldLeft(Some(this): Option[Board])(_ flatMap _)
 
-  def check: Option[Board] =
-    if (!canCheck) None
-    else Some(copy(roundActs = Check :: roundActs))
+  def nextRound: Option[Board] =
+    if (!allPlayersMoved)
+      None
+    else
+      Some(copy(
+        history = history.zipWith(roundActs) {
+          case (acts, Some(act)) =>
+            act :: acts
+          case (acts, None) =>
+            acts
+        },
+        roundActs = _stacks.map(_ => None)
+      ))
 
-  def canCheck = !allPlayersMoved
+
+
+  def check: Option[Board] = addAct(Check)
+
+  private def addAct(act: Act) = toAct map {
+    toAct => 
+    copy(roundActs =
+      roundActs.updated(toAct, Some(act)))
+  }
+
 }
 
 object Board {
 
   def apply(stacks: AtLeastTwo[Int], button: Int): Board =
-    Board(stacks, button, Nil)
+    Board(_stacks = stacks,
+      button = button,
+      roundActs = stacks.map(_ => None),
+      history = stacks.map(_ => Nil))
 
 }
