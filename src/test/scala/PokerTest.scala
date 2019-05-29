@@ -12,16 +12,20 @@ trait PokerTest extends Specification with ValidationMatchers {
 
   implicit def stringToBoard(str: String): Board = Visual << str
 
-  def makeBoard(stacks: List[Int], blinds: Int = 10): Board =
+  def makeBoard(stacks: List[Int]): Board =
     Board(
       stacks = AtLeastTwo(stacks.head,
         stacks.drop(1).head,
         stacks.drop(2)),
-      blinds = blinds,
       button = 0)
 
-  def makeGame(stacks: List[Int]): Game =
-    Game(makeBoard(stacks))
+  def makeTable(blinds: Int, capacity: Int = 9, board: Option[Board] = None): Table = {
+    Table(Vector.fill(capacity)(false), blinds, board)
+  }
+
+  def makeGame(stacks: List[Int], blinds: Int = 10): Game = {
+    Game(makeTable(blinds, 9, Some(makeBoard(stacks))))
+  }
 
   implicit def richGame(game: Game) = new {
 

@@ -4,7 +4,6 @@ import scalaz.NonEmptyList
 
 case class Board(
   _stacks: AtLeastTwo[Int],
-  blinds: Int,
   button: Int,
   roundActs: NonEmptyList[OptionActingRound],
   history: History) {
@@ -89,9 +88,8 @@ case class Board(
 
 object Board {
 
-  def apply(stacks: AtLeastTwo[Int], blinds: Int, button: Int): Board =
+  def apply(stacks: AtLeastTwo[Int], button: Int): Board =
     Board(_stacks = stacks,
-      blinds = blinds,
       button = button,
       roundActs = emptyRoundActs(stacks),
       history = History.empty)

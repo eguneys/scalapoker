@@ -63,7 +63,6 @@ object Visual {
         case _ => 0
       }
       }.toList,
-      blinds = 0,
       button = stacks.zipWithIndex.find {
         case (stack, _) => stack match {
           case StackPattern(stack, "b") => true

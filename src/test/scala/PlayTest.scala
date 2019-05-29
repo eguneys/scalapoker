@@ -10,7 +10,7 @@ class PlayTest extends PokerTest {
       val game = makeGame(List.fill(2)(10))
 
       "post blinds" in {
-        addNewLines(game.board.visual) must_== """
+        addNewLines(game.board.get.visual) must_== """
 10b 10
 . .
 """
@@ -25,7 +25,7 @@ class PlayTest extends PokerTest {
             Check)
 
           game2 must beSome.like {
-            case g => addNewLines(g.board.visual) must_== """
+            case g => addNewLines(g.board.get.visual) must_== """
 10b 10
 . C
 C C
