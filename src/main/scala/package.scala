@@ -2,6 +2,7 @@ package object poker {
 
   type Cards = List[Card]
 
-  type RoundActs = List[Act]
+  type OptionActingRound = AtLeastTwo[Option[Act]]
+  type ActingRound = AtLeastTwo[Act]
 
 }

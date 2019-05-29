@@ -1,6 +1,9 @@
 package poker
 package format
 
+import scalaz.NonEmptyList
+import scalaz.IList
+
 object Visual {
 
   private val ActPattern = "(.)(\\d*)".r
@@ -20,16 +23,23 @@ object Visual {
     case _ => "."
   }
 
+  private def writeActs(round: List[ActingRound]) =  round.map {
+    _.map { act => writeAct(Some(act)) }.toList mkString " "
+  }.toList mkString "!"
+
   def <<(source: String): Board = {
     val lines = source.trim.lines.toList
     val stacks = lines.head split " "
     val roundActs = lines.drop(1) match {
-      case Nil => stacks map (_ => "")
-      case x :: xs => x split " "
+      case Nil => NonEmptyList(stacks map (_ => ".") toList)
+      case x :: xs => {
+        val res = (x split "!" toList).map(_ split " " toList)
+        NonEmptyList.nel(res.head, IList.fromList(res.tail))
+      }
     }
     val history = lines.drop(2) match {
       case Nil => Nil
-      case xs => xs.map(_.split(" "))
+      case xs => xs.map(_.split("!").map(_.split(" ") toList) toList)
     }
 
     Board(
@@ -44,10 +54,11 @@ object Visual {
           case _ => false
         }
       }.get._2,
-      history = history map { acts =>
+      history = history map { _.map { acts =>
         acts.map { readAct(_).get }.toList: AtLeastTwo[Act]
+      }
       },
-      roundActs = roundActs.map { readAct(_) }.toList
+      roundActs = roundActs.map { _.map(readAct(_)): OptionActingRound }
     )
   }
 
@@ -59,11 +70,14 @@ object Visual {
         stack
     } mkString " "
 
-    val roundActs = board.roundActs.map(writeAct(_)).toList mkString " "
+    val roundActs = board.roundActs.map {
+      _.map(writeAct(_)).toList mkString " "
+    }.list.toList mkString "!"
 
-    val history = board.history.map { acts =>
-      acts.map { act => writeAct(Some(act)) }.toList mkString " "
-    }.toList mkString "\n"
+    val history = List(writeActs(board.history.preflop),
+      writeActs(board.history.flop),
+      writeActs(board.history.turn),
+      writeActs(board.history.river)) mkString "\n"
 
     (stacks ++ "\n" ++
       roundActs ++ "\n" ++

@@ -9,6 +9,13 @@ class PlayTest extends PokerTest {
     "heads up" in {
       val game = makeGame(List.fill(2)(10))
 
+      "post blinds" in {
+        addNewLines(game.board.visual) must_== """
+10b 10
+. .
+"""
+      }
+
       "players check" in {
         "current game" in {
           val game2 = game.playActs(

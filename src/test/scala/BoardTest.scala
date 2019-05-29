@@ -10,9 +10,10 @@ class BoardTest extends PokerTest {
 
     "decide small blind and big blind" in {
 
+      // button is always small blind in heads up
       twoPlayer.button must_== 0
-      twoPlayer.smallBlind must_== 1
-      twoPlayer.bigBlind must_== 0
+      twoPlayer.smallBlind must_== 0
+      twoPlayer.bigBlind must_== 1
 
       threePlayer.button must_== 0
       threePlayer.smallBlind must_== 1
@@ -24,7 +25,7 @@ class BoardTest extends PokerTest {
     }
 
     "decide first to acts" in {
-      twoPlayer.firstToAct must_== 1
+      twoPlayer.firstToAct must_== 0
       threePlayer.firstToAct must_== 0
       fourPlayer.firstToAct must_== 3
 
@@ -32,7 +33,7 @@ class BoardTest extends PokerTest {
       threePlayer.firstToActOnFlop must_== 1
       fourPlayer.firstToActOnFlop must_== 1
 
-      twoPlayer.toAct must_== Some(1)
+      twoPlayer.toAct must_== Some(0)
       threePlayer.toAct must_== Some(0)
       fourPlayer.toAct must_== Some(3)
     }
@@ -40,7 +41,7 @@ class BoardTest extends PokerTest {
     "allow a check on first act" in {
       twoPlayer.check must beSome.like {
         case b =>
-          b.toAct must_== Some(0)
+          b.toAct must_== Some(1)
       }
       threePlayer.check must beSome.like {
         case b => 
@@ -103,6 +104,32 @@ class BoardTest extends PokerTest {
       }
     }
 
+    "should find first to act" in {
+      "preflop" in {
+        twoPlayer.firstToAct must_== 0
+        threePlayer.firstToAct must_== 0
+      }
+      "post flop" in {
+        twoPlayer.seq(
+          _ check,
+          _ check,
+          _ nextRound
+        ) must beSome.like {
+          case b =>
+            b.firstToAct must_== 1
+        }
+        threePlayer.seq(
+          _ check,
+          _ check,
+          _ check,
+          _ nextRound
+        ) must beSome.like {
+          case b =>
+            b.firstToAct must_== 1
+        }
+      }
+    }
+
     "dont allow check second time" in {
       twoPlayer.seq(
         _ check,
@@ -123,8 +150,8 @@ class BoardTest extends PokerTest {
         _ check,
         _ nextRound) must beSome.like {
         case b =>
-          b.roundActs must_== AtLeastTwo(None, None)
-          b.history must_== List(AtLeastTwo(Check, Check))
+          b.roundActs must_== Board.emptyRoundActs(twoPlayer.stacks)
+          b.history must_== ActingRounds(List(AtLeastTwo(Check, Check)))
       }
     }
 
