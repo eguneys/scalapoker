@@ -22,6 +22,8 @@ case class Board(
 
   val actingRounds = history.actingRounds
 
+  val nextButton = (button + 1) % players
+
   val smallBlind = if (headsup)
     button
   else
@@ -68,9 +70,22 @@ case class Board(
         roundActs = emptyRoundActs(stacks)
       ))
 
-  def nextTurn: Option[Board] = None
+  def deal(blinds: Int): Option[Board] =
+    for {
+      s1 <- updateStacks(_stacks, smallBlind, -blinds / 2)
+      s2 <- updateStacks(s1, bigBlind, -blinds)
+      h = history.copy(blindsPosted = true)
+    } yield copy(_stacks = s2, history = h)
 
   def check: Option[Board] = addAct(Check)
+
+  private def updateStacks(stacks: AtLeastTwo[Int], index: Int, amount: Int): Option[AtLeastTwo[Int]] = {
+    val newAmount = stacks(index) + amount
+    if (newAmount < 0)
+      None
+    else
+      Some(stacks.updated(index, newAmount))
+  }
 
   private def addAct(act: Act) = toAct map {
     toAct => 

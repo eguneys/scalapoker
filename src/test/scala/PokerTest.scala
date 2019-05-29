@@ -16,15 +16,30 @@ trait PokerTest extends Specification with ValidationMatchers {
     Board(
       stacks = AtLeastTwo(stacks.head,
         stacks.drop(1).head,
-        stacks.drop(2)),
+        stacks.drop(2).to[Vector]),
       button = 0)
 
-  def makeTable(blinds: Int, capacity: Int = 9, board: Option[Board] = None): Table = {
-    Table(Vector.fill(capacity)(false), blinds, board)
+  def makeTable(blinds: Int, capacity: Int = 9): Table = {
+    Table(Vector.fill(capacity)(0),
+      blinds,
+      None)
   }
 
-  def makeGame(stacks: List[Int], blinds: Int = 10): Game = {
-    Game(makeTable(blinds, 9, Some(makeBoard(stacks))))
+  def makeGame(stacks: List[Int]): Game = {
+    Game(makeBoard(stacks))
+  }
+
+  implicit def richTable(table: Table) = new {
+
+    def playActs(acts: Act*): Option[Table] = playActList(acts)
+
+    def playActList(acts: Iterable[Act]): Option[Table] = {
+      val vt = acts.foldLeft(Some(table): Option[Table]) { (vt, act) =>
+        val nt = vt flatMap { t => t.playAct(act) map (_._1) }
+        nt
+      }
+      vt
+    }
   }
 
   implicit def richGame(game: Game) = new {

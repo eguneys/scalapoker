@@ -1,37 +1,122 @@
 package poker
 
-case class Table(seats: Vector[Boolean], blinds: Int, board: Option[Board] = None) {
+import scalaz.Validation.FlatMap._
+import scalaz.Validation.{ failureNel, success }
 
-  val nbPlayers = seats.count(b=>b)
+case class Table(stacks: Vector[Int], blinds: Int, game: Option[Game] = None) {
+
+  val nbPlayers = stacks.count(b=>b>0)
+
+  val capacity = stacks.length
 
   val minEntryStack = blinds * 10
 
-  def canJoinIndex(index: Int): Boolean = 
-    index >= 0 && index < seats.length && !seats(index)
+  lazy val stacksCompact = stacks.filter(_>0).toList
 
-  def joinStack(seat: Int, stack: Int): Option[Table] = {
+  def isEmpty(index: Int): Boolean =
+    stacks(index) <= 0
+
+  def canJoinIndex(index: Int): Boolean = 
+    index >= 0 && index < capacity && isEmpty(index)
+
+  def canLeaveIndex(index: Int): Boolean = 
+    index >= 0 && index < capacity && !isEmpty(index)
+
+  def stack(seat: Int): Int = {
+    val index = seat - 1
+    if (index >= 0 && index < capacity)
+      stacks(index)
+    else
+      0
+  }
+
+  def joinStack(seat: Int, stack: Int): Valid[Table] = {
     val index = seat - 1
 
     if (!canJoinIndex(index) || stack < minEntryStack)
-      None
+      failureNel(s"cant join seat")
     else
     {
       val table = copy(
-        seats = seats.updated(index, true)
+        stacks = stacks.updated(index, stack),
       )
 
-      Some(table)
+      success(table.dealerFinalizeTable)
+    }
+  }
+
+  def leaveStack(seat: Int): Option[(Table, Int)] = {
+    val index = seat - 1
+
+    if (!canLeaveIndex(index))
+      None
+    else {
+      val stack = stacks(index)
+
+      val table = copy(
+        stacks = stacks.updated(index, 0),
+      )
+      Some((table.dealerFinalizeTable, stack))
     }
   }
 
 
-  def seq(actions: Table => Option[Table]*): Option[Table] =
-    actions.foldLeft(Some(this): Option[Table])(_ flatMap _)
+  def deal: Valid[Table] = {
+    val table = for {
+      g <- game toValid "No game is playing"
+      _ <- g.validIf(!g.board.blindsPosted, "Blinds already posted")
+      b <- g.board.deal(blinds) toValid "Cannot post blinds"
+      g2 = g.copy(board = b)
+    } yield {
+      val t = copy(game = Some(g2))
+      t.dealerFinalizeTable
+    }
+
+    table
+  }
+
+  def playAct(act: Act): Option[(Table, Move)] =
+    game flatMap { _(act) map {
+      case (vg, move) =>
+        val table = copy(game = Some(vg))
+        (table, move)
+    }
+    }
+
+  def dealerFinalizeTable: Table = game match {
+    case None =>
+      if (nbPlayers >= 2) {
+        val newGame = Game(
+          stacksCompact
+        )
+        copy(game = Some(newGame))
+      } else {
+        this
+      }
+    case Some(game) => {
+      val table = copy(
+        stacks = updateStacks(game.board.stacks)
+      )
+      table
+    }
+  }
+
+
+  private def updateStacks(gameStacks: List[Int]): Vector[Int] = {
+    stacks.zipWithIndex.foldLeft((stacks, gameStacks)) {
+      case (acc, (0, i)) => acc
+      case ((acc, gameStacks), (stack, i)) =>
+        (acc.updated(i, gameStacks.head), gameStacks.tail)
+    }._1
+  }
+
+  def seq(actions: Table => Valid[Table]*): Valid[Table] =
+    actions.foldLeft(success(this): Valid[Table])(_ flatMap _)
 
   override def toString: String = {
     "Table(" +
-    nbPlayers + " Board(" +
-    board + "))"
+    nbPlayers + " " +
+    game + ")"
   }
 
 }
@@ -39,6 +124,6 @@ case class Table(seats: Vector[Boolean], blinds: Int, board: Option[Board] = Non
 object Table {
 
   def apply(capacity: Int, blinds: Int): Table =
-    Table(Vector.fill(capacity)(false), blinds)
+    Table(Vector.fill(capacity)(0), blinds)
 
 }

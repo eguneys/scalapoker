@@ -1,14 +1,12 @@
 package poker
 
-case class Game(table: Table) {
+case class Game(board: Board) {
 
-  val board = table.board
+  lazy val actor = Actor(board)
 
-  lazy val actor = board map Actor.apply
+  def moves: List[Move] = actor.validMoves
 
-  def moves: List[Move] = actor.map (_.validMoves) getOrElse Nil
-
-  def raiseMove(raise: Raise): Option[Move] = actor flatMap (_.validRaise(raise))
+  def raiseMove(raise: Raise): Option[Move] = actor.validRaise(raise)
 
   def apply(act: Act): Option[(Game, Move)] =
     move(act) map { move =>
@@ -17,7 +15,7 @@ case class Game(table: Table) {
 
   def apply(move: Move): Game = {
     copy(
-      table = table.copy(board = Some(move.finalizeAfter))
+      board = move.finalizeAfter
     )
   }
 
@@ -30,5 +28,8 @@ case class Game(table: Table) {
 }
 
 object Game {
+
+  def apply(stacks: List[Int]): Game =
+    Game(Board(stacks, button = 0))
 
 }

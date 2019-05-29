@@ -1,32 +1,24 @@
 package poker
 
-final case class AtLeastTwo[A](first: A, second: A, tail: List[A] = Nil) {
+final case class AtLeastTwo[A](first: A, second: A, tail: Vector[A] = Vector.empty) {
 
-  def toList: List[A] = first :: second :: tail
+  def toList: List[A] = first :: second :: tail.toList
 
   def size: Int = 2 + tail.size
 
   def length: Int = size
 
+  def apply(i: Int): A = i match {
+    case 0 => first
+    case 1 => second
+    case n => tail(n - 2)
+  }
+
   def map[B](f: A => B): AtLeastTwo[B] =
     AtLeastTwo(f(first), f(second), tail.map(f))
 
-  def zipWith[B, C](b: AtLeastTwo[B])(f: (A, B) => C): AtLeastTwo[C] = {
-
-    def zwRev(as: List[A], bs: List[B], acc: List[C]): List[C] = (as, bs) match {
-      case (Nil, _) => acc
-      case (_, Nil) => acc
-      case (x :: xs, y :: ys) => zwRev(xs, ys, f(x, y) :: acc)
-    }
-
-    AtLeastTwo(
-      f(first, b.first),
-      f(second, b.second),
-      zwRev(tail, b.tail, Nil).reverse)
-  }
-
   def filter(p: A => Boolean): List[A] = {
-    val ftail = tail.filter(p)
+    val ftail = tail.filter(p).toList
     (p(first), p(second)) match {
       case (false, true) => second :: ftail
       case (false, false) => ftail
@@ -51,7 +43,7 @@ object AtLeastTwo {
   implicit def fromList[A](list: List[A]): AtLeastTwo[A] =
     list match {
       case first :: second :: tail =>
-        AtLeastTwo(first, second, tail)
+        AtLeastTwo(first, second, tail.to[Vector])
       case _ => throw new Exception("not enough size")
     }
 
