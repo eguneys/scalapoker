@@ -17,10 +17,6 @@ case object Fold extends Act {
 case object AllIn extends Act {
   val forsyth: Char = 'a'
 }
-case object Raise extends Act {
-  val forsyth: Char = 'r'
-}
-
 case class Raise(amount: Int) extends Act {
   val forsyth: Char = 'r'
 }
@@ -29,7 +25,7 @@ object Act {
 
   def forsyth(c: Char): Option[Act] = allByForsyth get c
 
-  val all = List(Check, Call, Fold, AllIn, Raise)
+  val all = List(Check, Call, Fold, AllIn)
 
   val allByForsyth = all map { a => a.forsyth -> a } toMap
 }

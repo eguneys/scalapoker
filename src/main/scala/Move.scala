@@ -6,7 +6,11 @@ case class Move(
   after: Board) {
 
   def finalizeAfter: Board = {
-    after.nextRound getOrElse after
+    val nextRound = after.nextRound getOrElse after
+
+    val nextTurn = nextRound.nextTurn getOrElse nextRound
+
+    nextTurn
   }
 
 }

@@ -1,7 +1,7 @@
 package poker
 
 import poker.format.{ HandVisual, Visual }
-import org.specs2.matcher.{ ValidationMatchers }
+import org.specs2.matcher.{ Matcher, ValidationMatchers }
 import org.specs2.mutable.Specification
 
 trait PokerTest extends Specification with ValidationMatchers {
@@ -12,10 +12,13 @@ trait PokerTest extends Specification with ValidationMatchers {
 
   implicit def stringToBoard(str: String): Board = Visual << str
 
-  def makeBoard(stacks: List[Int]): Board =
-    Board(AtLeastTwo(stacks.head,
-      stacks.drop(1).head,
-      stacks.drop(2)), 0)
+  def makeBoard(stacks: List[Int], blinds: Int = 10): Board =
+    Board(
+      stacks = AtLeastTwo(stacks.head,
+        stacks.drop(1).head,
+        stacks.drop(2)),
+      blinds = blinds,
+      button = 0)
 
   def makeGame(stacks: List[Int]): Game =
     Game(makeBoard(stacks))
@@ -31,5 +34,13 @@ trait PokerTest extends Specification with ValidationMatchers {
       }
       vg
     }
+  }
+
+  def bePoss(acts: Act*): Matcher[Game] = { g: Game =>
+    g.moves map(_.act) must contain(exactly(acts:_*))
+  }
+
+  def bePossRaise(raise: Raise): Matcher[Game] = { g: Game =>
+    g.raiseMove(raise) must beSome
   }
 }

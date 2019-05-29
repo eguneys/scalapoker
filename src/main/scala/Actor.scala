@@ -2,17 +2,15 @@ package poker
 
 case class Actor(board: Board) {
 
-  def validMoves(baseAct: Act): List[Move] =
+  def validMoves: List[Move] =
     (Act.all flatMap {
       case Check => board.check map { move(Check, _) }
       case Call => None
       case Fold => None
       case AllIn => None
-      case Raise => baseAct match {
-        case r@Raise => None
-        case _ => None
-      }
     })
+
+  def validRaise(raise: Raise): Option[Move] = None
 
   private def move(act: Act, after: Board) = {
     Move(

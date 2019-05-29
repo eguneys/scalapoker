@@ -4,9 +4,10 @@ import scalaz.NonEmptyList
 
 case class Board(
   _stacks: AtLeastTwo[Int],
+  blinds: Int,
   button: Int,
   roundActs: NonEmptyList[OptionActingRound],
-  history: ActingRounds) {
+  history: History) {
 
   import Board._
 
@@ -16,7 +17,11 @@ case class Board(
 
   val headsup = players == 2
 
-  val preflop = history.isPreflop
+  val preflop = history.preflop
+
+  val blindsPosted = history.blindsPosted
+
+  val actingRounds = history.actingRounds
 
   val smallBlind = if (headsup)
     button
@@ -41,10 +46,12 @@ case class Board(
 
   private val nextToAct = (firstToAct + nbPlayersActed) % players
 
-  val toAct = if (!allPlayersActed)
-    Some(nextToAct)
-  else
+  val toAct = if (preflop && !blindsPosted)
     None
+  else if (!allPlayersActed)
+      Some(nextToAct)
+    else
+      None
 
 
   def seq(actions: Board => Option[Board]*): Option[Board] =
@@ -56,9 +63,13 @@ case class Board(
     else
       Some(copy(
         history =
-          roundActs.map(_.map(_.get)).list.toList :: Nil,
+          history.addRound(
+            roundActs.map(_.map(_.get)).list.toList
+          ),
         roundActs = emptyRoundActs(stacks)
       ))
+
+  def nextTurn: Option[Board] = None
 
   def check: Option[Board] = addAct(Check)
 
@@ -78,11 +89,12 @@ case class Board(
 
 object Board {
 
-  def apply(stacks: AtLeastTwo[Int], button: Int): Board =
+  def apply(stacks: AtLeastTwo[Int], blinds: Int, button: Int): Board =
     Board(_stacks = stacks,
+      blinds = blinds,
       button = button,
       roundActs = emptyRoundActs(stacks),
-      history = ActingRounds.empty)
+      history = History.empty)
 
   def emptyRoundActs(stacks: AtLeastTwo[_]): NonEmptyList[OptionActingRound] = NonEmptyList(stacks.map(_ => None))
 }

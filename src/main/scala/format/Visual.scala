@@ -4,6 +4,16 @@ package format
 import scalaz.NonEmptyList
 import scalaz.IList
 
+/*
+
+ """
+ 10b 10 10
+ C C .
+ C C C
+ C C C
+ """, """
+ 
+ */
 object Visual {
 
   private val ActPattern = "(.)(\\d*)".r
@@ -37,10 +47,15 @@ object Visual {
         NonEmptyList.nel(res.head, IList.fromList(res.tail))
       }
     }
-    val history = lines.drop(2) match {
+    val actingRounds = lines.drop(2) match {
       case Nil => Nil
       case xs => xs.map(_.split("!").map(_.split(" ") toList) toList)
     }
+
+    val history = History(blindsPosted = false,
+      actingRounds = actingRounds map { _.map { acts =>
+        acts.map { readAct(_).get }.toList: AtLeastTwo[Act]
+      }})
 
     Board(
       _stacks = stacks.map { _ match {
@@ -48,16 +63,14 @@ object Visual {
         case _ => 0
       }
       }.toList,
+      blinds = 0,
       button = stacks.zipWithIndex.find {
         case (stack, _) => stack match {
           case StackPattern(stack, "b") => true
           case _ => false
         }
       }.get._2,
-      history = history map { _.map { acts =>
-        acts.map { readAct(_).get }.toList: AtLeastTwo[Act]
-      }
-      },
+      history = history,
       roundActs = roundActs.map { _.map(readAct(_)): OptionActingRound }
     )
   }
@@ -74,14 +87,14 @@ object Visual {
       _.map(writeAct(_)).toList mkString " "
     }.list.toList mkString "!"
 
-    val history = List(writeActs(board.history.preflop),
-      writeActs(board.history.flop),
-      writeActs(board.history.turn),
-      writeActs(board.history.river)) mkString "\n"
+    val actingRounds = List(writeActs(board.actingRounds.preflop),
+      writeActs(board.actingRounds.flop),
+      writeActs(board.actingRounds.turn),
+      writeActs(board.actingRounds.river)) mkString "\n"
 
     (stacks ++ "\n" ++
       roundActs ++ "\n" ++
-      history).trim
+      actingRounds).trim
   }
 
   def addNewLines(str: String) = "\n" + str + "\n"
