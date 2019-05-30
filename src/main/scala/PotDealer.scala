@@ -2,16 +2,39 @@ package poker
 
 case class PotDealer(
   button: StackIndex,
+  blindsPosted: Boolean,
   stacks: AtLeastTwo[Int],
   runningPot: PotBuilder,
   sidePots: List[Pot]) {
 
-  def blinds(small: StackIndex, big: StackIndex, blinds: Int): Option[PotDealer] = for {
-    d1 <- updateStacks(small, -blinds / 2)
-    d2 <- d1.updateStacks(big, -blinds)
-    p = d2.runningPot.bet(small, blinds / 2)
-    p2 = p.bet(big, blinds)
-  } yield d2.copy(runningPot = p2)
+  val players = stacks.length
+
+  val headsup = players == 2
+
+  val smallBlind = if (headsup)
+    button
+  else
+    (button + 1) % players
+
+  val bigBlind = (smallBlind + 1) % players
+
+  def blinds(blinds: Int): Option[PotDealer] = for {
+    d1 <- updateStacks(smallBlind, -blinds / 2)
+    d2 <- d1.updateStacks(bigBlind, -blinds)
+    d3 = d2.copy(blindsPosted = true)
+    d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, blinds))
+  } yield d4
+
+  def check(index: StackIndex): Option[PotDealer] =
+    updatePot(_.check(index))
+
+  def call(index: StackIndex): Option[PotDealer] =
+    updatePot(_.call(index))
+
+  private def updatePot(f: PotBuilder => Option[PotBuilder]): Option[PotDealer] = if (!blindsPosted)
+    None
+  else
+    f(runningPot) map { r => copy(runningPot = r) }
 
   private def updateStacks(index: StackIndex, amount: Int): Option[PotDealer] = {
     val newAmount = stacks(index) + amount
@@ -21,6 +44,9 @@ case class PotDealer(
       Some(copy(stacks = stacks.updated(index, newAmount)))
   }
 
+  def seq(actions: PotDealer => Option[PotDealer]*): Option[PotDealer] =
+    actions.foldLeft(Some(this): Option[PotDealer])(_ flatMap _)
+
   def visual = format.PotVisual >> this
 
   override def toString = visual
@@ -29,21 +55,6 @@ case class PotDealer(
 
 object PotDealer {
 
-  def empty(stacks: AtLeastTwo[Int]) = PotDealer(0, stacks, PotBuilder(Map.empty[StackIndex, Int]), Nil)
-
-}
-
-case class PotBuilder(bets: Map[StackIndex, Int]) {
-
-  lazy val amount = bets.values.reduce(_+_)
-
-  def bet(index: StackIndex, amount: Int): PotBuilder = {
-    copy(bets = bets + (index -> amount))
-  }
-
-}
-
-case class Pot(amount: Int, involved: AtLeastTwo[StackIndex]) {
-
+  def empty(stacks: AtLeastTwo[Int]) = PotDealer(0, false, stacks, PotBuilder(Map.empty[StackIndex, Int]), Nil)
 
 }

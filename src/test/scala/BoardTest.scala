@@ -162,8 +162,7 @@ class BoardTest extends PokerTest {
         _ nextRound) must beSome.like {
         case b =>
           b.roundActs must_== Board.emptyRoundActs(twoPlayer.stacks)
-          b.history must_== History(true,
-            ActingRounds(List(AtLeastTwo(Check, Check))))
+          b.history must_== History(ActingRounds(List(AtLeastTwo(Check, Check))))
       }
     }
   }

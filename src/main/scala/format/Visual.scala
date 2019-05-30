@@ -51,10 +51,9 @@ object Visual {
       case xs => xs.map(_.split("!").map(_.split(" ") toList) toList)
     }
 
-    val history = History(blindsPosted = false,
-      actingRounds = actingRounds map { _.map { acts =>
-        acts.map { readAct(_).get }.toList: AtLeastTwo[Act]
-      }})
+    val history = History(actingRounds = actingRounds map { _.map { acts =>
+      acts.map { readAct(_).get }.toList: AtLeastTwo[Act]
+    }})
 
     Board(
       pots = pots,

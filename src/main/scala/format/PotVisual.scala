@@ -3,7 +3,7 @@ package format
 
 object PotVisual {
 
-  private val StackPattern = "(\\d+)(b?)".r
+  private val StackPattern = "(\\d+)(b|s|B?)".r
 
   private val PotBuilderPattern = "\\(([\\d*|\\. ?]*)\\)~".r
 
@@ -28,6 +28,14 @@ object PotVisual {
           case _ => false
         }
       }.get._2,
+      blindsPosted = stacks.foldLeft(false) { 
+        case (true, _) => true
+        case (false, s) => s match {
+          case StackPattern(_, "s") |
+              StackPattern(_, "B") => true
+          case _ => false
+        }
+      },
       runningPot = bets match {
         case PotBuilderPattern(bets) =>
           PotBuilder(
@@ -47,6 +55,10 @@ object PotVisual {
     val stacks = dealer.stacks.toList.zipWithIndex.map {
       case (stack, idx) if idx == dealer.button =>
         stack + "b"
+      case (stack, idx) if dealer.blindsPosted && idx == dealer.smallBlind =>
+        stack + "s"
+      case (stack, idx) if dealer.blindsPosted && idx == dealer.bigBlind =>
+        stack + "B"
       case (stack, idx) =>
         stack
     } mkString " "

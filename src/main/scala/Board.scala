@@ -11,26 +11,21 @@ case class Board(
 
   val stacks = pots.stacks.toList
 
-  val players = stacks.length
+  val players = pots.players
 
-  val headsup = players == 2
+  val headsup = pots.headsup
 
   val preflop = history.preflop
 
-  val blindsPosted = history.blindsPosted
+  val blindsPosted = pots.blindsPosted
 
   val actingRounds = history.actingRounds
 
   val button = pots.button
 
-  val nextButton = (button + 1) % players
+  val smallBlind = pots.smallBlind
 
-  val smallBlind = if (headsup)
-    button
-  else
-    (button + 1) % players
-
-  val bigBlind = (smallBlind + 1) % players
+  val bigBlind = pots.bigBlind
 
   val firstToActOnPreflop = (bigBlind + 1) % players
 
@@ -55,10 +50,6 @@ case class Board(
     else
       None
 
-
-  def seq(actions: Board => Option[Board]*): Option[Board] =
-    actions.foldLeft(Some(this): Option[Board])(_ flatMap _)
-
   def nextRound: Option[Board] =
     if (!allPlayersActed)
       None
@@ -73,11 +64,13 @@ case class Board(
 
   def deal(blinds: Int): Option[Board] =
     for {
-      p <- pots.blinds(smallBlind, bigBlind, blinds)
-      h = history.copy(blindsPosted = true)
-    } yield copy(pots = p, history = h)
+      p <- pots.blinds(blinds)
+    } yield copy(pots = p)
 
   def check: Option[Board] = addAct(Check)
+
+  def seq(actions: Board => Option[Board]*): Option[Board] =
+    actions.foldLeft(Some(this): Option[Board])(_ flatMap _)
 
   private def addAct(act: Act) = toAct map {
     toAct => 

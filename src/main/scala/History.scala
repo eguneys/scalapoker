@@ -1,7 +1,6 @@
 package poker
 
 case class History(
-  blindsPosted: Boolean,
   actingRounds: ActingRounds) {
 
   val preflop = actingRounds.isPreflop
@@ -14,6 +13,6 @@ case class History(
 
 object History {
 
-  val empty = History(false, ActingRounds.empty)
+  val empty = History(ActingRounds.empty)
 
 }
