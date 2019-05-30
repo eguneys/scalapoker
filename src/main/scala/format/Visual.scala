@@ -18,8 +18,6 @@ object Visual {
 
   private val ActPattern = "(.)(\\d*)".r
 
-  private val StackPattern = "(\\d+)(b?)".r
-
   private def readAct(str: String) = str match {
     case ActPattern(act, "") =>
       Act.forsyth(act(0).toLower)
@@ -39,9 +37,10 @@ object Visual {
 
   def <<(source: String): Board = {
     val lines = source.trim.lines.toList
-    val stacks = lines.head split " "
+    val potsSource = lines.head
+    val pots = PotVisual << potsSource
     val roundActs = lines.drop(1) match {
-      case Nil => NonEmptyList(stacks map (_ => ".") toList)
+      case Nil => NonEmptyList(pots.stacks map (_ => ".") toList)
       case x :: xs => {
         val res = (x split "!" toList).map(_ split " " toList)
         NonEmptyList.nel(res.head, IList.fromList(res.tail))
@@ -58,30 +57,14 @@ object Visual {
       }})
 
     Board(
-      _stacks = stacks.map { _ match {
-        case StackPattern(stack, _) => stack.toInt
-        case _ => 0
-      }
-      }.toList,
-      button = stacks.zipWithIndex.find {
-        case (stack, _) => stack match {
-          case StackPattern(stack, "b") => true
-          case _ => false
-        }
-      }.get._2,
+      pots = pots,
       history = history,
       roundActs = roundActs.map { _.map(readAct(_)): OptionActingRound }
     )
   }
 
   def >>(board: Board): String = {
-    val stacks = board.stacks.zipWithIndex.map {
-      case (stack, idx) if idx == board.button =>
-        stack + "b"
-      case (stack, idx) =>
-        stack
-    } mkString " "
-
+    val pots = PotVisual >> board.pots
     val roundActs = board.roundActs.map {
       _.map(writeAct(_)).toList mkString " "
     }.list.toList mkString "!"
@@ -91,7 +74,7 @@ object Visual {
       writeActs(board.actingRounds.turn),
       writeActs(board.actingRounds.river)) mkString "\n"
 
-    (stacks ++ "\n" ++
+    (pots ++ "\n" ++
       roundActs ++ "\n" ++
       actingRounds).trim
   }

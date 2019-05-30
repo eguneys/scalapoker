@@ -3,14 +3,13 @@ package poker
 import scalaz.NonEmptyList
 
 case class Board(
-  _stacks: AtLeastTwo[Int],
-  button: Int,
+  pots: PotDealer,
   roundActs: NonEmptyList[OptionActingRound],
   history: History) {
 
   import Board._
 
-  val stacks = _stacks.toList
+  val stacks = pots.stacks.toList
 
   val players = stacks.length
 
@@ -21,6 +20,8 @@ case class Board(
   val blindsPosted = history.blindsPosted
 
   val actingRounds = history.actingRounds
+
+  val button = pots.button
 
   val nextButton = (button + 1) % players
 
@@ -72,20 +73,11 @@ case class Board(
 
   def deal(blinds: Int): Option[Board] =
     for {
-      s1 <- updateStacks(_stacks, smallBlind, -blinds / 2)
-      s2 <- updateStacks(s1, bigBlind, -blinds)
+      p <- pots.blinds(smallBlind, bigBlind, blinds)
       h = history.copy(blindsPosted = true)
-    } yield copy(_stacks = s2, history = h)
+    } yield copy(pots = p, history = h)
 
   def check: Option[Board] = addAct(Check)
-
-  private def updateStacks(stacks: AtLeastTwo[Int], index: Int, amount: Int): Option[AtLeastTwo[Int]] = {
-    val newAmount = stacks(index) + amount
-    if (newAmount < 0)
-      None
-    else
-      Some(stacks.updated(index, newAmount))
-  }
 
   private def addAct(act: Act) = toAct map {
     toAct => 
@@ -103,9 +95,8 @@ case class Board(
 
 object Board {
 
-  def apply(stacks: AtLeastTwo[Int], button: Int): Board =
-    Board(_stacks = stacks,
-      button = button,
+  def empty(stacks: AtLeastTwo[Int]): Board =
+    Board(pots = PotDealer.empty(stacks),
       roundActs = emptyRoundActs(stacks),
       history = History.empty)
 

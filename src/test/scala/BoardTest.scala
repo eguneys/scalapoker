@@ -166,7 +166,5 @@ class BoardTest extends PokerTest {
             ActingRounds(List(AtLeastTwo(Check, Check))))
       }
     }
-
   }
-
 }

@@ -32,6 +32,6 @@ case class Game(board: Board) {
 object Game {
 
   def apply(stacks: List[Int]): Game =
-    Game(Board(stacks, button = 0))
+    Game(Board.empty(stacks))
 
 }

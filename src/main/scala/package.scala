@@ -9,4 +9,6 @@ package object poker
   type OptionActingRound = AtLeastTwo[Option[Act]]
   type ActingRound = AtLeastTwo[Act]
 
+  type StackIndex = Int
+
 }

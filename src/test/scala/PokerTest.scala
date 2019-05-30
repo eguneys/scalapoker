@@ -13,11 +13,9 @@ trait PokerTest extends Specification with ValidationMatchers {
   implicit def stringToBoard(str: String): Board = Visual << str
 
   def makeBoard(stacks: List[Int]): Board =
-    Board(
-      stacks = AtLeastTwo(stacks.head,
-        stacks.drop(1).head,
-        stacks.drop(2).to[Vector]),
-      button = 0)
+    Board.empty(AtLeastTwo(stacks.head,
+      stacks.drop(1).head,
+      stacks.drop(2).to[Vector]))
 
   def makeTable(blinds: Int, capacity: Int = 9): Table = {
     Table(Vector.fill(capacity)(0),
