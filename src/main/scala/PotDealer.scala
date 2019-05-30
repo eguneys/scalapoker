@@ -18,6 +18,10 @@ case class PotDealer(
 
   val bigBlind = (smallBlind + 1) % players
 
+  def toCall(index: StackIndex) = runningPot.toCall(index)
+
+  lazy val isSettled = runningPot.isSettled(stacks.toList.zipWithIndex.map(_._2))
+
   def blinds(blinds: Int): Option[PotDealer] = for {
     d1 <- updateStacks(smallBlind, -blinds / 2)
     d2 <- d1.updateStacks(bigBlind, -blinds)
@@ -28,8 +32,10 @@ case class PotDealer(
   def check(index: StackIndex): Option[PotDealer] =
     updatePot(_.check(index))
 
-  def call(index: StackIndex): Option[PotDealer] =
-    updatePot(_.call(index))
+  def call(index: StackIndex): Option[PotDealer] = for {
+    d1 <- updateStacks(index, -toCall(index))
+    d2 <- d1.updatePot(_.call(index))
+  } yield d2
 
   private def updatePot(f: PotBuilder => Option[PotBuilder]): Option[PotDealer] = if (!blindsPosted)
     None

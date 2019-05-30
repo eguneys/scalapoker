@@ -30,9 +30,61 @@ class PotDealerTest extends PokerTest {
       dealer.seq(
         _.blinds(10),
         _.call(3)
-      ) must bePot("100b 95s 90B 100!(. 5 10 10)~!")
+      ) must bePot("100b 95s 90B 90!(. 5 10 10)~!")
     }
 
+    "allow call when already money in the pot" in {
+      dealer.seq(
+        _.blinds(10),
+        _.call(3),
+        _.call(0),
+        _.call(1)
+      ) must bePot("90b 90s 90B 90!(10 10 10 10)~!")
+    }
+
+    "find is settled" should {
+      "not settled before blinds" in {
+        dealer.isSettled must beFalse
+      }
+
+      "not settled after blinds" in {
+        dealer.blinds(10) must beSome.like {
+          case d =>
+            d.isSettled must beFalse
+        }
+      }
+
+      "not settled after a call" in {
+        dealer.seq(
+          _.blinds(10),
+          _.call(3)
+        ) must beSome.like {
+          case d =>
+            d.isSettled must beFalse
+        }
+
+        dealer.seq(
+          _.blinds(10),
+          _.call(3),
+          _.call(0)
+        ) must beSome.like {
+          case d =>
+            d.isSettled must beFalse
+        }
+      }
+
+      "settled after all players call" in {
+        dealer.seq(
+          _.blinds(10),
+          _.call(3),
+          _.call(0),
+          _.call(1)
+        ) must beSome.like {
+          case d =>
+            d.isSettled must beTrue
+        }
+      }
+    }
   }
 
 }
