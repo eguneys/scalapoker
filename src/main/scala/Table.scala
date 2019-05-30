@@ -65,8 +65,7 @@ case class Table(stacks: Vector[Int], blinds: Int, game: Option[Game] = None) {
     val table = for {
       g <- game toValid "No game is playing"
       _ <- g.validIf(!g.board.blindsPosted, "Blinds already posted")
-      b <- g.board.deal(blinds) toValid "Cannot post blinds"
-      g2 = g.copy(board = b)
+      g2 <- g.deal(blinds) toValid "Cannot post blinds"
     } yield {
       val t = copy(game = Some(g2))
       t.dealerFinalizeTable

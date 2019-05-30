@@ -8,6 +8,10 @@ class BoardTest extends PokerTest {
     val threePlayer = makeBoard(List.fill(3)(10))
     val fourPlayer = makeBoard(List.fill(4)(10))
 
+    val twoPlayer2 = twoPlayer.deal(1).get
+    val threePlayer2 = threePlayer.deal(1).get
+    val fourPlayer2 = fourPlayer.deal(1).get
+
     "decide small blind and big blind" in {
 
       // button is always small blind in heads up
@@ -33,42 +37,49 @@ class BoardTest extends PokerTest {
       threePlayer.firstToActOnFlop must_== 1
       fourPlayer.firstToActOnFlop must_== 1
 
-      twoPlayer.toAct must_== Some(0)
-      threePlayer.toAct must_== Some(0)
-      fourPlayer.toAct must_== Some(3)
+      twoPlayer.toAct must_== None
+
+      twoPlayer2.toAct must_== Some(0)
+      threePlayer2.toAct must_== Some(0)
+      fourPlayer2.toAct must_== Some(3)
+    }
+
+    "dont allow a check before a deal" in {
+      twoPlayer.check must beNone
     }
 
     "allow a check on first act" in {
-      twoPlayer.check must beSome.like {
+
+      twoPlayer2.check must beSome.like {
         case b =>
           b.toAct must_== Some(1)
       }
-      threePlayer.check must beSome.like {
+      threePlayer2.check must beSome.like {
         case b => 
           b.toAct must_== Some(1)
       }
-      fourPlayer.check must beSome.like {
+      fourPlayer2.check must beSome.like {
         case b => 
           b.toAct must_== Some(0)
       }
     }
 
     "allow a check on second act" in {
-      twoPlayer.seq(
+      twoPlayer2.seq(
         _ check,
         _ check
       ) must beSome.like {
         case b =>
           b.toAct must beNone
       }
-      threePlayer.seq(
+      threePlayer2.seq(
         _ check,
         _ check
       ) must beSome.like {
         case b => 
           b.toAct must_== Some(2)
       }
-      fourPlayer.seq(
+      fourPlayer2.seq(
         _ check,
         _ check
       ) must beSome.like {
@@ -78,14 +89,14 @@ class BoardTest extends PokerTest {
     }
 
     "should find toAct" in {
-      twoPlayer.seq(
+      twoPlayer2.seq(
         _ check,
         _ check
       ) must beSome.like {
         case b =>
           b.toAct must beNone
       }
-      threePlayer.seq(
+      threePlayer2.seq(
         _ check,
         _ check,
         _ check
@@ -93,7 +104,7 @@ class BoardTest extends PokerTest {
         case b => 
           b.toAct must beNone
       }
-      fourPlayer.seq(
+      fourPlayer2.seq(
         _ check,
         _ check,
         _ check,
@@ -110,7 +121,7 @@ class BoardTest extends PokerTest {
         threePlayer.firstToAct must_== 0
       }
       "post flop" in {
-        twoPlayer.seq(
+        twoPlayer2.seq(
           _ check,
           _ check,
           _ nextRound
@@ -118,7 +129,7 @@ class BoardTest extends PokerTest {
           case b =>
             b.firstToAct must_== 1
         }
-        threePlayer.seq(
+        threePlayer2.seq(
           _ check,
           _ check,
           _ check,
@@ -131,7 +142,7 @@ class BoardTest extends PokerTest {
     }
 
     "dont allow check second time" in {
-      twoPlayer.seq(
+      twoPlayer2.seq(
         _ check,
         _ check,
         _ check
@@ -145,13 +156,14 @@ class BoardTest extends PokerTest {
     }
 
     "allow next round" in {
-      twoPlayer.seq(
+      twoPlayer2.seq(
         _ check,
         _ check,
         _ nextRound) must beSome.like {
         case b =>
           b.roundActs must_== Board.emptyRoundActs(twoPlayer.stacks)
-          b.history must_== ActingRounds(List(AtLeastTwo(Check, Check)))
+          b.history must_== History(true,
+            ActingRounds(List(AtLeastTwo(Check, Check))))
       }
     }
 

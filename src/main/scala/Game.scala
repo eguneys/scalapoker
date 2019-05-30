@@ -19,6 +19,8 @@ case class Game(board: Board) {
     )
   }
 
+  def deal(blinds: Int): Option[Game] = board.deal(blinds) map { b => copy(board = b) }
+
   private def move(act: Act) = {
     def findMove(act: Act) = moves find(_.act == act)
     for {
