@@ -17,6 +17,9 @@ final case class AtLeastTwo[A](first: A, second: A, tail: Vector[A] = Vector.emp
   def map[B](f: A => B): AtLeastTwo[B] =
     AtLeastTwo(f(first), f(second), tail.map(f))
 
+  def reduce(f: (A, A) => A): A =
+    tail.foldLeft(f(first, second))(f)
+
   def filter(p: A => Boolean): List[A] = {
     val ftail = tail.filter(p).toList
     (p(first), p(second)) match {
@@ -30,12 +33,19 @@ final case class AtLeastTwo[A](first: A, second: A, tail: Vector[A] = Vector.emp
   def exists(p: A => Boolean): Boolean =
     p(first) || p(second) || tail.exists(p)
 
+  def forall(p: A => Boolean): Boolean =
+    p(first) && p(second) && tail.forall(p)
+
   def updated(i: Int, elem: A): AtLeastTwo[A] = 
     i match {
       case 0 => copy(first = elem)
       case 1 => copy(second = elem)
       case n => copy(tail = tail.updated(n - 2, elem))
     }
+
+  override def toString: String = {
+    "AtLeastTwo(" + first + " " + second + " " + (tail.map(_.toString) mkString " ") + ")"
+  }
 }
 
 object AtLeastTwo {

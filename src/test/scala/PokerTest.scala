@@ -1,6 +1,6 @@
 package poker
 
-import poker.format.{ HandVisual, Visual }
+import poker.format.{ HandVisual, PotVisual, Visual }
 import org.specs2.matcher.{ Matcher, ValidationMatchers }
 import org.specs2.mutable.Specification
 
@@ -59,5 +59,9 @@ trait PokerTest extends Specification with ValidationMatchers {
 
   def bePossRaise(raise: Raise): Matcher[Game] = { g: Game =>
     g.raiseMove(raise) must beSome
+  }
+
+  def bePot(visual: String): Matcher[Option[PotDealer]] = beSome.like {
+    case p => p.visual must_== (PotVisual << visual).visual
   }
 }

@@ -5,12 +5,16 @@ object PotVisual {
 
   private val StackPattern = "(\\d+)(b?)".r
 
+  private val PotBuilderPattern = "\\(([\\d*|\\. ?]*)\\)~".r
+
   private val PotPattern = "(\\d*) \\(([\\d* ?]*)\\)".r
 
   def <<(source: String): PotDealer = {
     val potstacks = source split "!"
     val stacks = potstacks.head split " "
-    val pots = potstacks.tail
+    val bets = potstacks.drop(1).head
+
+    val pots = potstacks.drop(2)
 
     PotDealer(
       stacks = stacks.map { _ match {
@@ -24,13 +28,18 @@ object PotVisual {
           case _ => false
         }
       }.get._2,
-      pots = pots.map { _ match {
-        case PotPattern(pot, groups) => 
-          Pot(amount = pot.toInt,
-            involved = (groups split " " toList).map (_.toInt)
+      runningPot = bets match {
+        case PotBuilderPattern(bets) =>
+          PotBuilder(
+            (bets split " " ).toList.zipWithIndex.foldLeft(Map.empty[StackIndex, Int]) { (acc, iBet) => 
+              iBet._1 match {
+                case "." => acc
+                case v => acc + (iBet._2 -> v.toInt)
+              }
+            }
           )
-      }
-      }.toList
+      },
+      sidePots = pots.map(readPot) toList
     )
   }
 
@@ -42,11 +51,25 @@ object PotVisual {
         stack
     } mkString " "
 
-    val pots = dealer.pots.map { pot =>
-      pot.amount + " (" + (pot.involved.toList mkString " ") + ")"
-    } mkString "!"
+    val runningPot = "(" + (
+      dealer.stacks.toList.zipWithIndex.map {
+        case (_, i) =>
+          dealer.runningPot.bets.getOrElse(i, ".")
+      } mkString " ") + ")~"
 
-    stacks + "!" + pots
+    val pots = dealer.sidePots.map(writePot) mkString "!"
+
+    stacks + "!" + runningPot + "!" + pots
+  }
+
+  private def readPot(src: String): Pot = src match {
+    case PotPattern(pot, groups) =>
+      Pot(amount = pot.toInt,
+        involved = (groups split " " toList).map (_.toInt))
+  }
+
+  private def writePot(pot: Pot): String = {
+    pot.amount + " (" + (pot.involved.toList mkString " ") + ")"
   }
 
 }
