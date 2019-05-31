@@ -36,12 +36,15 @@ class VisualTest extends PokerTest {
   val examples = Seq(
     newBoardFormat, """
 10 10b 10!(. . .)~!
+
 H H
 """, """
 10b 10 10!(. . .)~!
+
 H H
 """, """
 10b 10 10!(. . .)~!10 (0 1 2)
+
 H H
 H H H
 H H H

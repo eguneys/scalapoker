@@ -6,6 +6,8 @@ case class Board(
 
   val preflop = history.preflop
 
+  val river = history.river
+
   val blindsPosted = pots.blindsPosted
 
   val actingRounds = history.actingRounds
@@ -29,9 +31,10 @@ case class Board(
   else
     firstToActOnFlop
 
-  val recentActsSettled = pots.isSettled
 
   val playersActedRecently = history.playersActedRecently
+
+  val recentActsSettled = pots.isSettled && playersActedRecently == players
 
   private val nextToAct = (firstToAct + playersActedRecently) % players
 
@@ -43,7 +46,7 @@ case class Board(
       None
 
   def nextRound: Option[Board] =
-    if (!recentActsSettled)
+    if (!recentActsSettled || river)
       None
     else
       Some(copy(history = history.addRound))
@@ -53,15 +56,32 @@ case class Board(
       p <- pots.blinds(blinds)
     } yield copy(pots = p)
 
-  def check: Option[Board] = addAct(Check)
+  def check: Option[Board] = toAct flatMap { toAct =>
+    for {
+      p <- pots.check(toAct)
+      h = history.addAct(Check)
+      b1 = copy(pots = p, history = h)
+    } yield b1
+  }
+
+  def call: Option[Board] = toAct flatMap { toAct =>
+    for {
+      p <- pots.call(toAct)
+      h = history.addAct(Call)
+      b1 = copy(pots = p, history = h)
+    } yield b1
+  }
+
+  def raise(raise: Raise): Option[Board] = toAct flatMap { toAct =>
+    for {
+      p <- pots.raise(toAct, raise.onTop)
+      h = history.addAct(raise)
+      b1 = copy(pots = p, history = h)
+    } yield b1
+  }
 
   def seq(actions: Board => Option[Board]*): Option[Board] =
     actions.foldLeft(Some(this): Option[Board])(_ flatMap _)
-
-  private def addAct(act: Act) = toAct map {
-    toAct => copy(history = history.addAct(act))
-  }
-
 
   def visual = format.Visual >> this
 

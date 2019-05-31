@@ -7,7 +7,7 @@ case class Move(
 
   def finalizeAfter: Board = {
     val nextRound = after.nextRound getOrElse after
-
+    
     nextRound
   }
 

@@ -37,6 +37,15 @@ case class PotDealer(
     d2 <- d1.updatePot(_.call(index))
   } yield d2
 
+  def raise(index: StackIndex, onTop: Int): Option[PotDealer] = if (onTop < runningPot.minRaise) None
+  else {
+    val more = runningPot.howMore(index, onTop)
+    for {
+      d1 <- updateStacks(index, -more)
+      d2 <- d1.updatePot(_.raise(index, onTop))
+    } yield d2
+  }
+
   private def updatePot(f: PotBuilder => Option[PotBuilder]): Option[PotDealer] = if (!blindsPosted)
     None
   else
@@ -44,7 +53,7 @@ case class PotDealer(
 
   private def updateStacks(index: StackIndex, amount: Int): Option[PotDealer] = {
     val newAmount = stacks(index) + amount
-    if (newAmount < 0)
+    if (newAmount <= 0)
       None
     else
       Some(copy(stacks = stacks.updated(index, newAmount)))

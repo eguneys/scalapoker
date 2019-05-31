@@ -5,12 +5,13 @@ case class Actor(board: Board) {
   def validMoves: List[Move] =
     (Act.all flatMap {
       case Check => board.check map { move(Check, _) }
-      case Call => None
+      case Call => board.call map { move(Call, _) }
       case Fold => None
       case AllIn => None
     })
 
-  def validRaise(raise: Raise): Option[Move] = None
+  def validRaise(raise: Raise): Option[Move] =
+    board.raise(raise) map { move(raise, _) }
 
   private def move(act: Act, after: Board) = {
     Move(

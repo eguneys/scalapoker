@@ -64,4 +64,8 @@ trait PokerTest extends Specification with ValidationMatchers {
   def bePot(visual: String): Matcher[Option[PotDealer]] = beSome.like {
     case p => p.visual must_== (PotVisual << visual).visual
   }
+
+  def beGame(visual: String): Matcher[Option[Game]] = beSome.like {
+    case p => p.board.visual must_== (Visual << visual).visual
+  }
 }

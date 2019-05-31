@@ -32,7 +32,8 @@ object Visual {
     val pots = PotVisual << potsSource
     val actingRounds = lines.drop(1).map(_.split(" ") toList)
 
-    val history = History(actingRounds = actingRounds map { _.map(readAct).toList })
+    val history = History(actingRounds = actingRounds map { case List("") => Nil
+      case l => l.map(readAct).toList })
 
     Board(pots = pots,
       history = history)

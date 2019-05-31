@@ -6,7 +6,22 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
 
   lazy val highestBet = bets.values.foldLeft(0)((acc, v) => Math.max(acc, v))
 
-  def isSettled(indexes: List[StackIndex]) = indexes.forall(bets.get(_).exists(_ == highestBet))
+  lazy val secondHighestBet = bets.values.foldLeft(0) {
+    case (acc, v) if v == highestBet => acc
+    case (acc, v) => Math.max(acc, v)
+  }
+
+  lazy val minRaise = highestBet - secondHighestBet
+
+  def howOnTop(onTop: Int) =
+    highestBet + onTop
+
+  def howMore(index: StackIndex, onTop: Int) =
+    howOnTop(onTop) - (bets getOrElse (index, 0))
+
+  def isSettled(indexes: List[StackIndex]) = indexes.forall(isHighest)
+
+  def isHighest(index: StackIndex) = bets.get(index).exists(_ == highestBet)
 
   def toCall(index: StackIndex) = highestBet - bets.getOrElse(index, 0)
 
@@ -20,9 +35,21 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
 
   def bet(index: StackIndex, amount: Int): Option[PotBuilder] = None
 
-  def check(index: StackIndex): Option[PotBuilder] = None
+  def check(index: StackIndex): Option[PotBuilder] = 
+    if (isHighest(index))
+      Some(this)
+    else {
+      None
+    }
 
-  def call(index: StackIndex): Option[PotBuilder] = updateBet(index, highestBet)
+  def call(index: StackIndex): Option[PotBuilder] = 
+    if (isHighest(index))
+      None
+    else
+      updateBet(index, highestBet)
+
+  def raise(index: StackIndex, onTop: Int): Option[PotBuilder] =
+    updateBet(index, howOnTop(onTop))
 
   private def updateBet(index: StackIndex, amount: Int): Option[PotBuilder] =
     Some(copy(bets = bets + (index -> amount)))

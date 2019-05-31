@@ -17,7 +17,7 @@ case object Fold extends Act {
 case object AllIn extends Act {
   val forsyth: Char = 'a'
 }
-case class Raise(amount: Int) extends Act {
+case class Raise(onTop: Int) extends Act {
   val forsyth: Char = 'r'
 }
 

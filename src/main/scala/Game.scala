@@ -22,7 +22,10 @@ case class Game(board: Board) {
   def deal(blinds: Int): Option[Game] = board.deal(blinds) map { b => copy(board = b) }
 
   private def move(act: Act) = {
-    def findMove(act: Act) = moves find(_.act == act)
+    def findMove(act: Act) = act match {
+      case r:Raise => raiseMove(r)
+      case act => moves find(_.act == act)
+    }
     for {
       m <- findMove(act)
     } yield m
