@@ -12,7 +12,7 @@ class PotDealerTest extends PokerTest {
     }
 
     "build blind pots" in {
-      dealer.blinds(10) must bePot("100b 95s 90B 100!(. 5 10 .)~!")
+      dealer.blinds(10) must bePot("100b 95s 90B 100!(0 5 10 0)~!")
     }
 
     "dont allow any action before blinds" in {
@@ -30,7 +30,7 @@ class PotDealerTest extends PokerTest {
       dealer.seq(
         _.blinds(10),
         _.call(3)
-      ) must bePot("100b 95s 90B 90!(. 5 10 10)~!")
+      ) must bePot("100b 95s 90B 90!(0 5 10 10)~!")
     }
 
     "allow call when already money in the pot" in {
@@ -83,6 +83,22 @@ class PotDealerTest extends PokerTest {
           case d =>
             d.isSettled must beTrue
         }
+      }
+    }
+
+    "raise" should {
+      "dont allow raise smaller than blind" in {
+        dealer.seq(
+          _.blinds(10),
+          _.raise(3, 9)
+        ) must beNone
+      }
+
+      "allow raise of blind" in {
+        dealer.seq(
+          _.blinds(10),
+          _.raise(3, 10)
+        ) must bePot("100b 95s 90B 80!(0 5 10 20)~!")
       }
     }
   }

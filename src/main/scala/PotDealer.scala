@@ -20,13 +20,17 @@ case class PotDealer(
 
   def toCall(index: StackIndex) = runningPot.toCall(index)
 
-  lazy val isSettled = runningPot.isSettled(stacks.toList.zipWithIndex.map(_._2))
+  lazy val playersInPot = runningPot.players.size
+
+  lazy val stackIndexes = stacks.toList.zipWithIndex.map(_._2)
+
+  lazy val isSettled = blindsPosted && runningPot.isSettled
 
   def blinds(blinds: Int): Option[PotDealer] = for {
     d1 <- updateStacks(smallBlind, -blinds / 2)
     d2 <- d1.updateStacks(bigBlind, -blinds)
     d3 = d2.copy(blindsPosted = true)
-    d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, blinds))
+    d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, stackIndexes, blinds))
   } yield d4
 
   def check(index: StackIndex): Option[PotDealer] =

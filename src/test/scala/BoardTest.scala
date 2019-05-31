@@ -8,9 +8,9 @@ class BoardTest extends PokerTest {
     val threePlayer = makeBoard(List.fill(3)(10))
     val fourPlayer = makeBoard(List.fill(4)(10))
 
-    val twoPlayer2 = twoPlayer.deal(1).get
-    val threePlayer2 = threePlayer.deal(1).get
-    val fourPlayer2 = fourPlayer.deal(1).get
+    val twoPlayerGame = makeGame(List(100, 100)).deal(10).get
+    val threePlayerGame = makeGame(List(100, 100, 100)).deal(10).get
+    val fourPlayerGame = makeGame(List(100, 100, 100, 100)).deal(10).get
 
     "decide small blind and big blind" in {
 
@@ -28,7 +28,7 @@ class BoardTest extends PokerTest {
       fourPlayer.bigBlind must_== 2
     }
 
-    "decide first to acts" in {
+    "should find first to acts" in {
       twoPlayer.firstToAct must_== 0
       threePlayer.firstToAct must_== 0
       fourPlayer.firstToAct must_== 3
@@ -39,80 +39,9 @@ class BoardTest extends PokerTest {
 
       twoPlayer.toAct must_== None
 
-      twoPlayer2.toAct must_== Some(0)
-      threePlayer2.toAct must_== Some(0)
-      fourPlayer2.toAct must_== Some(3)
-    }
-
-    "dont allow a check before a deal" in {
-      twoPlayer.check must beNone
-    }
-
-    "allow a check on first act" in {
-
-      twoPlayer2.check must beSome.like {
-        case b =>
-          b.toAct must_== Some(1)
-      }
-      threePlayer2.check must beSome.like {
-        case b => 
-          b.toAct must_== Some(1)
-      }
-      fourPlayer2.check must beSome.like {
-        case b => 
-          b.toAct must_== Some(0)
-      }
-    }
-
-    "allow a check on second act" in {
-      twoPlayer2.seq(
-        _ check,
-        _ check
-      ) must beSome.like {
-        case b =>
-          b.toAct must beNone
-      }
-      threePlayer2.seq(
-        _ check,
-        _ check
-      ) must beSome.like {
-        case b => 
-          b.toAct must_== Some(2)
-      }
-      fourPlayer2.seq(
-        _ check,
-        _ check
-      ) must beSome.like {
-        case b => 
-          b.toAct must_== Some(1)
-      }
-    }
-
-    "should find toAct" in {
-      twoPlayer2.seq(
-        _ check,
-        _ check
-      ) must beSome.like {
-        case b =>
-          b.toAct must beNone
-      }
-      threePlayer2.seq(
-        _ check,
-        _ check,
-        _ check
-      ) must beSome.like {
-        case b => 
-          b.toAct must beNone
-      }
-      fourPlayer2.seq(
-        _ check,
-        _ check,
-        _ check,
-        _ check
-      ) must beSome.like {
-        case b => 
-          b.toAct must beNone
-      }
+      twoPlayerGame.board.toAct must_== Some(0)
+      threePlayerGame.board.toAct must_== Some(0)
+      fourPlayerGame.board.toAct must_== Some(3)
     }
 
     "should find first to act" in {
@@ -121,48 +50,76 @@ class BoardTest extends PokerTest {
         threePlayer.firstToAct must_== 0
       }
       "post flop" in {
-        twoPlayer2.seq(
-          _ check,
-          _ check,
-          _ nextRound
-        ) must beSome.like {
+        twoPlayerGame.playActs(Call, Check) must beSome.like {
           case b =>
-            b.firstToAct must_== 1
+            b.board.firstToAct must_== 1
         }
-        threePlayer2.seq(
-          _ check,
-          _ check,
-          _ check,
-          _ nextRound
-        ) must beSome.like {
+        threePlayerGame.playActs(Call, Call, Check) must beSome.like {
           case b =>
-            b.firstToAct must_== 1
+            b.board.firstToAct must_== 1
         }
       }
     }
 
-    "dont allow check second time" in {
-      twoPlayer2.seq(
-        _ check,
-        _ check,
-        _ check
-      ) must beNone
-    }
+    "find to act" should {
 
-    "dont allow next round" in {
-      twoPlayer.nextRound must beNone
-      threePlayer.nextRound must beNone
-      fourPlayer.nextRound must beNone
-    }
+      "find toAct after a call" in {
 
-    "allow next round" in {
-      twoPlayer2.seq(
-        _ check,
-        _ check,
-        _ nextRound) must beSome.like {
-        case b =>
-          b.history must_== History(ActingRounds(List(Check, Check)))
+        twoPlayerGame.playActs(Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+        threePlayerGame.playActs(Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+        fourPlayerGame.playActs(Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(0)
+        }
       }
+
+      "find toAct after two calls" in {
+        twoPlayerGame.playActs(Call, Check) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+        threePlayerGame.playActs(Call, Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(2)
+        }
+        fourPlayerGame.playActs(Call, Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+      }
+
+      "find to act after preflop" in {
+        twoPlayerGame.playActs(Call, Check, Check) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(0)
+        }
+        threePlayerGame.playActs(Call, Call, Check) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+        fourPlayerGame.playActs(Call, Call, Call, Check) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+      }
+
+      "after raise" in {
+        fourPlayerGame.playActs(Call, Call, Raise(10), Call, Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(0)
+        }
+        threePlayerGame.playActs(Call, Call, Raise(10), Call, Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+      }
+
     }
   }
-}
+} 

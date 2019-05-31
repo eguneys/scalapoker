@@ -28,7 +28,7 @@ class HeadsUpTest extends PokerTest {
 
       "players call check" in {
         headsup.playActs(Call) must bePoss(Check, Fold)
-        headsup.playActs(Call) must bePossRaise(Raise(5))
+        headsup.playActs(Call) must bePossRaise(Raise(10))
 
         headsup.playActs(Call) must beGame("""
 90b 90B!(10 10)~!
@@ -39,6 +39,15 @@ C
 90b 90B!(10 10)~!
 
 H C
+""")
+      }
+
+      "small blind fold" in {
+        headsup.playActs(Fold) must bePoss()
+
+        headsup.playActs(Fold) must beGame("""
+95b 90B!(. 10)~!
+F
 """)
       }
     }

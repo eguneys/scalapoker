@@ -12,33 +12,61 @@ case class Board(
 
   val actingRounds = history.actingRounds
 
+  val recentActs = history.recentActs
+
   val stacks = pots.stacks.toList
 
   val players = pots.players
 
+  lazy val playersInPot = pots.playersInPot
+
   val button = pots.button
 
-  val smallBlind = pots.smallBlind
+  lazy val smallBlind = pots.smallBlind
 
-  val bigBlind = pots.bigBlind
+  lazy val bigBlind = pots.bigBlind
 
-  val firstToActOnPreflop = (bigBlind + 1) % players
+  lazy val firstToActOnPreflop = (bigBlind + 1) % players
 
-  val firstToActOnFlop = (button + 1) % players
+  lazy val firstToActOnFlop = (button + 1) % players
 
-  val firstToAct = if (preflop)
+  lazy val firstToAct = if (preflop)
     firstToActOnPreflop
   else
     firstToActOnFlop
 
 
-  val playersActedRecently = history.playersActedRecently
+  lazy val playersActedRecently = history.playersActedRecently
 
-  val recentActsSettled = pots.isSettled && playersActedRecently >= players
+  lazy val recentActsSettled = pots.isSettled && playersActedRecently >= playersInPot
 
-  private val nextToAct = (firstToAct + playersActedRecently) % players
+  // 0 1 2 3
+  // c c f r 
+  // c r . c
+  // c
 
-  val toAct = if (preflop && !blindsPosted)
+  private lazy val nextToAct = {
+    def nextIndex(skipIndexes: List[StackIndex], i: StackIndex): StackIndex = {
+      val next = (i + 1) % players
+      if (skipIndexes.exists(_==next))
+        nextIndex(skipIndexes, next)
+      else
+        next
+    }
+
+    def findToAct(acts: List[Act], skipIndexes: List[StackIndex], cur: StackIndex): StackIndex = acts match {
+      case (Fold|AllIn)::as =>
+        findToAct(as, cur :: skipIndexes, nextIndex(skipIndexes, cur))
+      case _::as =>
+        findToAct(as, skipIndexes, nextIndex(skipIndexes, cur))
+      case Nil =>
+        cur
+    }
+
+    findToAct(recentActs, Nil, firstToAct)
+  }
+
+  lazy val toAct = if (preflop && !blindsPosted)
     None
   else if (!recentActsSettled)
       Some(nextToAct)
