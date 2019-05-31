@@ -46,6 +46,8 @@ case class PotDealer(
     } yield d2
   }
 
+  def fold(index: StackIndex): Option[PotDealer] = Some(this)
+
   private def updatePot(f: PotBuilder => Option[PotBuilder]): Option[PotDealer] = if (!blindsPosted)
     None
   else

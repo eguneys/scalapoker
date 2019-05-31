@@ -56,29 +56,28 @@ case class Board(
       p <- pots.blinds(blinds)
     } yield copy(pots = p)
 
-  def check: Option[Board] = toAct flatMap { toAct =>
-    for {
-      p <- pots.check(toAct)
-      h = history.addAct(Check)
-      b1 = copy(pots = p, history = h)
-    } yield b1
-  }
+  def check: Option[Board] = for {
+    toAct <- toAct
+    p <- pots.check(toAct)
+  } yield copy(pots = p)
 
-  def call: Option[Board] = toAct flatMap { toAct =>
-    for {
-      p <- pots.call(toAct)
-      h = history.addAct(Call)
-      b1 = copy(pots = p, history = h)
-    } yield b1
-  }
+  def call: Option[Board] = for {
+    toAct <- toAct
+    p <- pots.call(toAct)
+  } yield copy(pots = p)
 
-  def raise(raise: Raise): Option[Board] = toAct flatMap { toAct =>
-    for {
-      p <- pots.raise(toAct, raise.onTop)
-      h = history.addAct(raise)
-      b1 = copy(pots = p, history = h)
-    } yield b1
-  }
+  def raise(raise: Raise): Option[Board] = for {
+    toAct <- toAct
+    p <- pots.raise(toAct, raise.onTop)
+  } yield copy(pots = p)
+
+  def fold: Option[Board] = for {
+    toAct <- toAct
+    p <- pots.fold(toAct)
+  } yield copy(pots = p)
+
+  def updateHistory(f: History => History) = 
+    copy(history = f(history))
 
   def seq(actions: Board => Option[Board]*): Option[Board] =
     actions.foldLeft(Some(this): Option[Board])(_ flatMap _)

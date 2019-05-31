@@ -6,9 +6,11 @@ case class Move(
   after: Board) {
 
   def finalizeAfter: Board = {
-    val nextRound = after.nextRound getOrElse after
-    
-    nextRound
+    val board = after.updateHistory { h =>
+      h.addAct(act)
+    }
+
+    board.nextRound getOrElse board
   }
 
 }
