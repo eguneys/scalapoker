@@ -106,6 +106,43 @@ H C
 R5
 """)
         }
+
+        "dont allow raise smaller than min raise" in {
+          dealt.playActs(Raise(5), Raise(4)) must beNone
+        }
+
+        "allow raise call" in {
+          dealt.playActs(Raise(5), Call) must beGame("""
+85b 85B!(15 15)~!
+
+C R5
+""")
+        }
+
+        "allow reraise" in {
+          dealt.playActs(Raise(5), Raise(5)) must beGame("""
+85b 80B!(15 20)~!
+R5 R5
+""")
+        }
+
+        "allow reraise call" in {
+          dealt.playActs(Raise(5), Raise(5), Call) must beGame("""
+80b 80B!(20 20)~!
+
+C R5 R5
+""")
+        }
+      }
+
+      "players fold" in {
+
+        "allow fold" in {
+          dealt.playActs(Fold) must beGame("""
+95b 90!(0 0)~!
+""")
+        }
+
       }
     }
   }

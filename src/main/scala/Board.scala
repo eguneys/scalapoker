@@ -34,7 +34,7 @@ case class Board(
 
   val playersActedRecently = history.playersActedRecently
 
-  val recentActsSettled = pots.isSettled && playersActedRecently == players
+  val recentActsSettled = pots.isSettled && playersActedRecently >= players
 
   private val nextToAct = (firstToAct + playersActedRecently) % players
 

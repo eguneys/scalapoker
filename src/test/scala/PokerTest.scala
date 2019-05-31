@@ -53,11 +53,11 @@ trait PokerTest extends Specification with ValidationMatchers {
     }
   }
 
-  def bePoss(acts: Act*): Matcher[Game] = { g: Game =>
+  def bePoss(acts: Act*): Matcher[Option[Game]] = beSome.like { case g =>
     g.moves map(_.act) must contain(exactly(acts:_*))
   }
 
-  def bePossRaise(raise: Raise): Matcher[Game] = { g: Game =>
+  def bePossRaise(raise: Raise): Matcher[Option[Game]] = beSome.like { case g =>
     g.raiseMove(raise) must beSome
   }
 

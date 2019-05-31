@@ -1,7 +1,5 @@
 package poker
 
-import format.Visual.addNewLines
-
 class HeadsUpTest extends PokerTest {
 
   "heads up play" should {
@@ -10,39 +8,38 @@ class HeadsUpTest extends PokerTest {
     val headsup = game.deal(10).get
 
     "should deal cards" in {
-      addNewLines(headsup.board.visual) must_== """
+      Some(headsup) must beGame("""
 95b 90B!(5 10)~!
-"""
+""")
     }
 
     "before posting blinds" should {
       "dont allow any action" in {
-        game must bePoss()
+        Some(game) must bePoss()
       }
     }
 
     "on pre flop" should {
 
       "dont allow check" in {
-        headsup must bePoss(Call, Fold)
+        Some(headsup) must bePoss(Call, Fold)
+        Some(headsup) must bePossRaise(Raise(5))
       }
 
       "players call check" in {
-        headsup.playActs(Call) must beSome.like {
-          case headsup =>
-            addNewLines(headsup.board.visual) must_== """
+        headsup.playActs(Call) must bePoss(Check, Fold)
+        headsup.playActs(Call) must bePossRaise(Raise(5))
+
+        headsup.playActs(Call) must beGame("""
 90b 90B!(10 10)~!
 C
-"""
-        }
+""")
 
-        headsup.playActs(Call, Check) must beSome.like {
-          case headsup =>
-            addNewLines(headsup.board.visual) must_== """
+        headsup.playActs(Call, Check) must beGame("""
 90b 90B!(10 10)~!
-C H
-"""
-        }
+
+H C
+""")
       }
     }
   }
