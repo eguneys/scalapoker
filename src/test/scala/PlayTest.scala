@@ -11,8 +11,7 @@ class PlayTest extends PokerTest {
 
       "before post blinds" in {
         addNewLines(game.board.visual) must_== """
-100b 100
-. .
+100b 100!(. .)~!
 """
       }
 
@@ -26,9 +25,9 @@ class PlayTest extends PokerTest {
 
           game2 must beSome.like {
             case g => addNewLines(g.board.visual) must_== """
-95b 90
-. C
-C C
+95b 90B!(5 10)~!
+H
+H H
 """
           }
         }

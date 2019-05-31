@@ -1,18 +1,13 @@
 package poker
 package format
 
-import scalaz.NonEmptyList
-import scalaz.IList
-
 /*
-
  """
- 10b 10 10
- C C .
- C C C
- C C C
- """, """
- 
+ 10b 10 10!(. . .)~!10 (0 1 2)
+ H H
+ H H H R R R C C C
+ H H H H H H C C R H H H H H
+ """
  */
 object Visual {
 
@@ -20,61 +15,35 @@ object Visual {
 
   private def readAct(str: String) = str match {
     case ActPattern(act, "") =>
-      Act.forsyth(act(0).toLower)
-    case ActPattern(act, raise) => Some(Raise(raise.toInt))
-    case _ => None
+      Act.forsyth(act(0).toLower).get
+    case ActPattern(act, raise) => Raise(raise.toInt)
   }
 
-  private def writeAct(act: Option[Act]) = act match {
-    case Some(r@Raise(amount)) => r.forsyth.toUpper + amount
-    case Some(act) => act.forsyth.toUpper.toString
-    case _ => "."
+  private def writeAct(act: Act) = act match {
+    case r@Raise(amount) => r.forsyth.toUpper.toString + amount
+    case act => act.forsyth.toUpper.toString
   }
 
-  private def writeActs(round: List[ActingRound]) =  round.map {
-    _.map { act => writeAct(Some(act)) }.toList mkString " "
-  }.toList mkString "!"
+  private def writeActs(round: ActingRound) =  round.map { act => writeAct(act) } mkString " "
 
   def <<(source: String): Board = {
     val lines = source.trim.lines.toList
     val potsSource = lines.head
     val pots = PotVisual << potsSource
-    val roundActs = lines.drop(1) match {
-      case Nil => NonEmptyList(pots.stacks map (_ => ".") toList)
-      case x :: xs => {
-        val res = (x split "!" toList).map(_ split " " toList)
-        NonEmptyList.nel(res.head, IList.fromList(res.tail))
-      }
-    }
-    val actingRounds = lines.drop(2) match {
-      case Nil => Nil
-      case xs => xs.map(_.split("!").map(_.split(" ") toList) toList)
-    }
+    val actingRounds = lines.drop(1).map(_.split(" ") toList)
 
-    val history = History(actingRounds = actingRounds map { _.map { acts =>
-      acts.map { readAct(_).get }.toList: AtLeastTwo[Act]
-    }})
+    val history = History(actingRounds = actingRounds map { _.map(readAct).toList })
 
-    Board(
-      pots = pots,
-      history = history,
-      roundActs = roundActs.map { _.map(readAct(_)): OptionActingRound }
-    )
+    Board(pots = pots,
+      history = history)
   }
 
   def >>(board: Board): String = {
     val pots = PotVisual >> board.pots
-    val roundActs = board.roundActs.map {
-      _.map(writeAct(_)).toList mkString " "
-    }.list.toList mkString "!"
 
-    val actingRounds = List(writeActs(board.actingRounds.preflop),
-      writeActs(board.actingRounds.flop),
-      writeActs(board.actingRounds.turn),
-      writeActs(board.actingRounds.river)) mkString "\n"
+    val actingRounds = board.actingRounds.toList map(writeActs _) mkString "\n"
 
     (pots ++ "\n" ++
-      roundActs ++ "\n" ++
       actingRounds).trim
   }
 

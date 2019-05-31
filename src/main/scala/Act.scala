@@ -5,11 +5,11 @@ trait Act {
 }
 
 case object Check extends Act {
-  val forsyth: Char = 'c'
+  val forsyth: Char = 'h'
 }
 
 case object Call extends Act {
-  val forsyth: Char = 'o'
+  val forsyth: Char = 'c'
 }
 case object Fold extends Act {
   val forsyth: Char = 'f'

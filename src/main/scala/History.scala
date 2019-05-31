@@ -5,9 +5,14 @@ case class History(
 
   val preflop = actingRounds.isPreflop
 
-  def addRound(round: List[ActingRound]) = copy(
-    actingRounds = round :: Nil
-  )
+  val recentActs = actingRounds.recentActs
+
+  val playersActedRecently = recentActs.length
+
+  def addAct(act: Act) = 
+    copy(actingRounds = actingRounds.addRecentAct(act))
+
+  def addRound = copy(actingRounds = actingRounds.addRound)
 
 }
 

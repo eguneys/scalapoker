@@ -11,8 +11,7 @@ class HeadsUpTest extends PokerTest {
 
     "should deal cards" in {
       addNewLines(headsup.board.visual) must_== """
-95b 90
-. .
+95b 90B!(5 10)~!
 """
     }
 
@@ -28,21 +27,20 @@ class HeadsUpTest extends PokerTest {
         headsup must bePoss(Call, Fold)
       }
 
-      "both players check" in {
-        headsup.playActs(Check) must beSome.like {
+      "players call check" in {
+        headsup.playActs(Call) must beSome.like {
           case headsup =>
             addNewLines(headsup.board.visual) must_== """
-95b 90
-C .
+90b 90B!(10 10)~!
+C
 """
         }
 
-        headsup.playActs(Check, Check) must beSome.like {
+        headsup.playActs(Call, Check) must beSome.like {
           case headsup =>
             addNewLines(headsup.board.visual) must_== """
-95b 90
-. .
-C C
+90b 90B!(10 10)~!
+C H
 """
         }
       }

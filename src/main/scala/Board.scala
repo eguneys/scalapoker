@@ -1,25 +1,18 @@
 package poker
 
-import scalaz.NonEmptyList
-
 case class Board(
   pots: PotDealer,
-  roundActs: NonEmptyList[OptionActingRound],
   history: History) {
-
-  import Board._
-
-  val stacks = pots.stacks.toList
-
-  val players = pots.players
-
-  val headsup = pots.headsup
 
   val preflop = history.preflop
 
   val blindsPosted = pots.blindsPosted
 
   val actingRounds = history.actingRounds
+
+  val stacks = pots.stacks.toList
+
+  val players = pots.players
 
   val button = pots.button
 
@@ -36,31 +29,24 @@ case class Board(
   else
     firstToActOnFlop
 
-  val nbPlayersActed = roundActs.head
-    .filter(_.isDefined).length
+  val recentActsSettled = pots.isSettled
 
-  val allPlayersActed = nbPlayersActed == players
+  val playersActedRecently = history.playersActedRecently
 
-  private val nextToAct = (firstToAct + nbPlayersActed) % players
+  private val nextToAct = (firstToAct + playersActedRecently) % players
 
   val toAct = if (preflop && !blindsPosted)
     None
-  else if (!allPlayersActed)
+  else if (!recentActsSettled)
       Some(nextToAct)
     else
       None
 
   def nextRound: Option[Board] =
-    if (!allPlayersActed)
+    if (!recentActsSettled)
       None
     else
-      Some(copy(
-        history =
-          history.addRound(
-            roundActs.map(_.map(_.get)).list.toList
-          ),
-        roundActs = emptyRoundActs(stacks)
-      ))
+      Some(copy(history = history.addRound))
 
   def deal(blinds: Int): Option[Board] =
     for {
@@ -73,9 +59,7 @@ case class Board(
     actions.foldLeft(Some(this): Option[Board])(_ flatMap _)
 
   private def addAct(act: Act) = toAct map {
-    toAct => 
-
-    copy(roundActs = NonEmptyList.nel(roundActs.head.updated(toAct, Some(act)), roundActs.tail))
+    toAct => copy(history = history.addAct(act))
   }
 
 
@@ -90,8 +74,5 @@ object Board {
 
   def empty(stacks: AtLeastTwo[Int]): Board =
     Board(pots = PotDealer.empty(stacks),
-      roundActs = emptyRoundActs(stacks),
       history = History.empty)
-
-  def emptyRoundActs(stacks: AtLeastTwo[_]): NonEmptyList[OptionActingRound] = NonEmptyList(stacks.map(_ => None))
 }

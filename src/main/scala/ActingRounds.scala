@@ -1,37 +1,59 @@
 package poker
 
 case class ActingRounds(
-  preflop: List[ActingRound],
-  flop: List[ActingRound],
-  turn: List[ActingRound],
-  river: List[ActingRound]) {
+  preflop: ActingRound,
+  flop: Option[ActingRound],
+  turn: Option[ActingRound],
+  river: Option[ActingRound]) {
 
-  def isPreflop = preflop == Nil
-  def isFlop = preflop != Nil && flop == Nil
-  def isTurn = flop != Nil && turn == Nil
-  def isRiver = turn != Nil && river == Nil
+  def isPreflop = flop == None
+  def isFlop = flop != None && turn == None
+  def isTurn = turn != None && river == None
+  def isRiver = river != None
 
-  def toList: List[List[ActingRound]] = List(preflop, flop, turn, river) match {
-    case pre :: flop :: turn :: river :: Nil => List(pre, flop, turn, river)
-    case pre :: flop :: turn :: Nil => List(pre, flop, turn)
-    case pre :: flop :: Nil => List(pre, flop)
-    case pre :: Nil => List(pre)
-    case _ => Nil
-  }
-  
+  def recentActs = if (isFlop) flop.get
+  else if (isTurn) turn.get
+  else if (isRiver) river.get
+  else preflop
+
+  def addRecentAct(act: Act) = if (isFlop)
+    copy(flop = Some(act :: flop.get))
+  else if (isTurn)
+    copy(turn = Some(act :: turn.get))
+  else if (isRiver)
+    copy(river = Some(act :: river.get))
+  else
+    copy(preflop = act :: preflop)
+
+  def addRound = if (isFlop)
+    copy(turn = Some(Nil))
+  else if (isTurn)
+    copy(river = Some(Nil))
+  else
+    copy(flop = Some(Nil))
+
+  def toList: List[ActingRound] = List(river, turn, flop).flatten :+ preflop
 }
 
 object ActingRounds {
 
-  val empty: ActingRounds = ActingRounds(Nil, Nil, Nil, Nil)
+  val empty: ActingRounds = ActingRounds(Nil, None, None, None)
 
-  def apply(pre: List[ActingRound]): ActingRounds = ActingRounds(pre, Nil, Nil, Nil)
+    def apply(pre: ActingRound, flop: ActingRound, turn: ActingRound, river: ActingRound): ActingRounds = ActingRounds(pre, Some(flop), Some(turn), Some(river))
 
-  implicit def fromList(list: List[List[ActingRound]]) = list match {
-    case pre :: flop :: turn :: river :: Nil => ActingRounds(pre, flop, turn, river)
-    case pre :: flop :: turn :: Nil => ActingRounds(pre, flop, turn, Nil)
-    case pre :: flop :: Nil => ActingRounds(pre, flop, Nil, Nil)
-    case pre :: Nil => ActingRounds(pre, Nil, Nil, Nil)
-    case _ => ActingRounds(Nil, Nil, Nil, Nil)
+  def apply(pre: ActingRound, flop: ActingRound, turn: ActingRound): ActingRounds = ActingRounds(pre, Some(flop), Some(turn), None)
+
+  def apply(pre: ActingRound, flop: ActingRound): ActingRounds = ActingRounds(pre, Some(flop), None, None)
+
+  def apply(pre: ActingRound): ActingRounds = ActingRounds(pre, None, None, None)
+
+
+  implicit def fromList(list: List[ActingRound]): ActingRounds = list match {
+    case river :: turn :: flop :: preflop :: Nil => ActingRounds(preflop, flop, turn, river)
+    case turn :: flop :: preflop :: Nil => ActingRounds(preflop, flop, turn)
+    case flop :: preflop :: Nil => ActingRounds(preflop, flop)
+    case preflop :: Nil => ActingRounds(preflop)
+    case _ => ActingRounds.empty
   }
+
 }
