@@ -45,6 +45,8 @@ case class Board(
   // c r . c
   // c
 
+  val roundsEnd = river || playersInPot == 1
+
   private lazy val nextToAct = {
     def nextIndex(skipIndexes: List[StackIndex], i: StackIndex): StackIndex = {
       val next = (i + 1) % players
@@ -63,7 +65,7 @@ case class Board(
         cur
     }
 
-    findToAct(recentActs, Nil, firstToAct)
+    findToAct(recentActs.reverse, Nil, firstToAct)
   }
 
   lazy val toAct = if (preflop && !blindsPosted)
@@ -74,7 +76,7 @@ case class Board(
       None
 
   def nextRound: Option[Board] =
-    if (!recentActsSettled || river)
+    if (!recentActsSettled || roundsEnd)
       None
     else
       Some(copy(history = history.addRound))

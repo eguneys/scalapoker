@@ -120,6 +120,22 @@ class BoardTest extends PokerTest {
         }
       }
 
+      "after fold" in {
+        // b s B .
+        // C R F C
+        fourPlayerGame.playActs(Call, Call, Raise(10), Fold) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(3)
+        }
+
+        // b s B .
+        // CF R F CR
+        fourPlayerGame.playActs(Call, Call, Raise(10), Fold, Raise(10), Fold) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+      }
+
     }
   }
 } 

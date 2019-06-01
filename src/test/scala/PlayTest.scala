@@ -139,12 +139,12 @@ C R5 R5
 
         "allow fold" in {
           dealt.playActs(Fold) must beGame("""
-95b 90B!(5 10)~!
+95b 90B!(. 10)~!
 F
 """)
         }
 
-        "dont allow any action after" in {
+        "dont allow any action after fold" in {
           dealt.playActs(Fold, Check) must beNone
           dealt.playActs(Fold, Call) must beNone
         }

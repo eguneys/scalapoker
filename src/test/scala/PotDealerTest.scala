@@ -101,6 +101,23 @@ class PotDealerTest extends PokerTest {
         ) must bePot("100b 95s 90B 80!(0 5 10 20)~!")
       }
     }
+
+    "fold" should {
+      "allow raise after fold" in {
+        // b s B .
+        // CR R F CR
+        dealer.seq(
+          _.blinds(10),
+          _.call(3),
+          _.call(0),
+          _.raise(1, 10),
+          _.fold(2),
+          _.call(3),
+          _.raise(0, 10)
+        ) must bePot("70b 80s 90B 80!(30 20 . 20)~!")
+      }
+
+    }
   }
 
 }

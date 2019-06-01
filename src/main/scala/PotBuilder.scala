@@ -6,9 +6,11 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
 
   lazy val amount = bets.values.reduce(_+_)
 
-  lazy val highestBet = bets.values.foldLeft(0)((acc, v) => Math.max(acc, v))
+  lazy val highestBet = if (bets.values.isEmpty) 0
+  else bets.values.reduce(Math.max(_, _))
 
-  lazy val lowestBet = bets.values.foldLeft(0)((acc, v) => Math.min(acc, v))
+  lazy val lowestBet = if(bets.values.isEmpty) 0
+  else bets.values.reduce(Math.min(_, _))
 
   lazy val minRaise = highestBet - lowestBet
 
@@ -54,6 +56,9 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
 
   def raise(index: StackIndex, onTop: Int): Option[PotBuilder] =
     updateBet(index, howOnTop(onTop))
+
+  def fold(index: StackIndex):  Option[PotBuilder] =
+    Some(copy(bets = bets - index))
 
   private def updateBet(index: StackIndex, amount: Int): Option[PotBuilder] =
     Some(copy(bets = bets + (index -> amount)))

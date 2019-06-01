@@ -41,7 +41,8 @@ case class PotDealer(
     d2 <- d1.updatePot(_.call(index))
   } yield d2
 
-  def raise(index: StackIndex, onTop: Int): Option[PotDealer] = if (onTop < runningPot.minRaise) None
+  def raise(index: StackIndex, onTop: Int): Option[PotDealer] = if (onTop < runningPot.minRaise)
+    None
   else {
     val more = runningPot.howMore(index, onTop)
     for {
@@ -50,7 +51,9 @@ case class PotDealer(
     } yield d2
   }
 
-  def fold(index: StackIndex): Option[PotDealer] = Some(this)
+  def fold(index: StackIndex): Option[PotDealer] = for {
+    d1 <- updatePot(_.fold(index))
+  } yield d1
 
   private def updatePot(f: PotBuilder => Option[PotBuilder]): Option[PotDealer] = if (!blindsPosted)
     None
