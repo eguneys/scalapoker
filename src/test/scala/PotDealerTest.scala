@@ -8,11 +8,11 @@ class PotDealerTest extends PokerTest {
 )
 
     "empty dealer" in {
-      Some(dealer) must bePot("100b 100 100 100!(. . . .)~!")
+      Some(dealer) must bePot("100b 100 100 100!0(. . . .)~!")
     }
 
     "build blind pots" in {
-      dealer.blinds(10) must bePot("100b 95s 90B 100!(0 5 10 0)~!")
+      dealer.blinds(10) must bePot("100b 95s 90B 100!10(. 5 10 .)~!")
     }
 
     "dont allow any action before blinds" in {
@@ -30,7 +30,7 @@ class PotDealerTest extends PokerTest {
       dealer.seq(
         _.blinds(10),
         _.call(3)
-      ) must bePot("100b 95s 90B 90!(0 5 10 10)~!")
+      ) must bePot("100b 95s 90B 90!10(. 5 10 10)~!")
     }
 
     "allow call when already money in the pot" in {
@@ -39,7 +39,7 @@ class PotDealerTest extends PokerTest {
         _.call(3),
         _.call(0),
         _.call(1)
-      ) must bePot("90b 90s 90B 90!(10 10 10 10)~!")
+      ) must bePot("90b 90s 90B 90!10(10 10 10 10)~!")
     }
 
     "find is settled" should {
@@ -92,13 +92,20 @@ class PotDealerTest extends PokerTest {
           _.blinds(10),
           _.raise(3, 9)
         ) must beNone
+
+        dealer.seq(
+          _.blinds(10),
+          _.call(3),
+          _.call(0),
+          _.raise(1, 9)
+        ) must beNone
       }
 
       "allow raise of blind" in {
         dealer.seq(
           _.blinds(10),
           _.raise(3, 10)
-        ) must bePot("100b 95s 90B 80!(0 5 10 20)~!")
+        ) must bePot("100b 95s 90B 80!10(. 5 10 20)~!")
       }
     }
 
@@ -114,7 +121,7 @@ class PotDealerTest extends PokerTest {
           _.fold(2),
           _.call(3),
           _.raise(0, 10)
-        ) must bePot("70b 80s 90B 80!(30 20 . 20)~!")
+        ) must bePot("70b 80s 90B 80!10(30 20 10 20)~!")
       }
 
     }

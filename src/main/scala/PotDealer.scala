@@ -22,16 +22,14 @@ case class PotDealer(
 
   lazy val nextButton = (button + 1) % players
 
-  lazy val playersInPot = runningPot.players.size
-
   lazy val stackIndexes = stacks.toList.zipWithIndex.map(_._2)
 
   lazy val isSettled = blindsPosted && runningPot.isSettled
 
-  lazy val pots = runningPot.pot :: sidePots
+  def pots(folds: List[StackIndex]) = runningPot.pot(folds) :: sidePots
 
-  def distribute(values: List[Int]): Option[PotDealer] = {
-    val updated = pots.map(_.distribute(values)).foldLeft(Some(this): Option[PotDealer]) {
+  def distribute(folds: List[StackIndex], values: List[Int]): Option[PotDealer] = {
+    val updated = pots(folds).map(_.distribute(values)).foldLeft(Some(this): Option[PotDealer]) {
       case (d, dists) => dists.foldLeft(d) {
         case (Some(d), dist) => d.updateStacks(dist.index, dist.amount)
         case _ => None
@@ -49,7 +47,7 @@ case class PotDealer(
     d1 <- updateStacks(smallBlind, -blinds / 2)
     d2 <- d1.updateStacks(bigBlind, -blinds)
     d3 = d2.copy(blindsPosted = true)
-    d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, stackIndexes, blinds))
+    d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, blinds))
   } yield d4
 
   def check(index: StackIndex): Option[PotDealer] =
@@ -60,13 +58,11 @@ case class PotDealer(
     d2 <- d1.updatePot(_.call(index))
   } yield d2
 
-  def raise(index: StackIndex, onTop: Int): Option[PotDealer] = if (onTop < runningPot.minRaise)
-    None
-  else {
+  def raise(index: StackIndex, onTop: Int): Option[PotDealer] = {
     val more = runningPot.howMore(index, onTop)
     for {
-      d1 <- updateStacks(index, -more)
-      d2 <- d1.updatePot(_.raise(index, onTop))
+      d1 <- updatePot(_.raise(index, onTop))
+      d2 <- d1.updateStacks(index, -more)
     } yield d2
   }
 

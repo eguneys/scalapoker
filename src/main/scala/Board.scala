@@ -18,8 +18,6 @@ case class Board(
 
   val players = pots.players
 
-  lazy val playersInPot = pots.playersInPot
-
   val button = pots.button
 
   lazy val smallBlind = pots.smallBlind
@@ -40,14 +38,14 @@ case class Board(
 
   lazy val recentActsSettled = pots.isSettled && playersActedRecently >= playersInPot
 
+  lazy val roundsEnd = ((river && recentActsSettled) || playersInPot == 1)
+
   // 0 1 2 3
   // c c f r 
   // c r . c
   // c
 
-  val roundsEnd = (river || playersInPot == 1)
-
-  private lazy val nextToAct = {
+  private lazy val foldsAndNextToAct = {
     def nextIndex(skipIndexes: List[StackIndex], i: StackIndex): StackIndex = {
       val next = (i + 1) % players
       if (skipIndexes.exists(_==next))
@@ -56,39 +54,52 @@ case class Board(
         next
     }
 
-    def findToAct(acts: List[Act], skipIndexes: List[StackIndex], cur: StackIndex): StackIndex = acts match {
+    def findFoldsAndToAct(acts: List[Act], skipIndexes: List[StackIndex], cur: StackIndex): (StackIndex, List[StackIndex]) = acts match {
       case (Fold|AllIn)::as =>
-        findToAct(as, cur :: skipIndexes, nextIndex(skipIndexes, cur))
+        findFoldsAndToAct(as, cur :: skipIndexes, nextIndex(skipIndexes, cur))
       case _::as =>
-        findToAct(as, skipIndexes, nextIndex(skipIndexes, cur))
+        findFoldsAndToAct(as, skipIndexes, nextIndex(skipIndexes, cur))
       case Nil =>
-        cur
+        (cur, skipIndexes)
     }
 
-    findToAct(recentActs.reverse, Nil, firstToAct)
+    findFoldsAndToAct(recentActs.reverse, Nil, firstToAct)
   }
+
+
+  private lazy val nextToAct = foldsAndNextToAct._1
+
+  private lazy val foldedPlayers = foldsAndNextToAct._2
+
+  private lazy val allPlayers = pots.stackIndexes
+
+  private lazy val allPlayersInPot = allPlayers.filterNot(foldedPlayers.toSet)
+
+  private lazy val playersInPot = allPlayersInPot.length
 
   lazy val toAct = if (preflop && !blindsPosted)
     None
-  else if (!recentActsSettled)
+  else if (!recentActsSettled && !roundsEnd)
       Some(nextToAct)
     else
       None
 
-  def nextRound: Option[Board] =
-    if (!recentActsSettled || roundsEnd)
+  def nextRound: Option[Board] = {
+    if (roundsEnd || !recentActsSettled)
       None
     else
       Some(copy(history = history.addRound))
+  }
 
-  def endRounds(values: List[Int]): Option[Board] =
-    if (!recentActsSettled || !roundsEnd)
+  def endRounds(values: List[Int]): Option[Board] = {
+    if (!roundsEnd)
       None
     else
       for {
-        p <- pots.distribute(values)
+        p <- pots.distribute(foldedPlayers, values)
         h = history.endRounds
       } yield copy(pots = p, history = h)
+  }
 
   def deal(blinds: Int): Option[Board] =
     for {

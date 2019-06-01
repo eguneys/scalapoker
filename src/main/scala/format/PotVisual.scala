@@ -5,7 +5,7 @@ object PotVisual {
 
   private val StackPattern = "(\\d+)(b|s|B?)".r
 
-  private val PotBuilderPattern = "\\(([\\d*|\\. ?]*)\\)~".r
+  private val PotBuilderPattern = "(\\d+)\\(([\\d*|\\. ?]*)\\)~".r
 
   private val PotPattern = "(\\d*) \\(([\\d* ?]*)\\)".r
 
@@ -37,8 +37,9 @@ object PotVisual {
         }
       },
       runningPot = bets match {
-        case PotBuilderPattern(bets) =>
+        case PotBuilderPattern(fullRaise, bets) =>
           PotBuilder(
+            fullRaise.toInt,
             (bets split " " ).toList.zipWithIndex.foldLeft(Map.empty[StackIndex, Int]) { (acc, iBet) => 
               iBet._1 match {
                 case "." => acc
@@ -63,7 +64,7 @@ object PotVisual {
         stack
     } mkString " "
 
-    val runningPot = "(" + (
+    val runningPot = dealer.runningPot.lastFullRaise + "(" + (
       dealer.stacks.toList.zipWithIndex.map {
         case (_, i) =>
           dealer.runningPot.bets.getOrElse(i, ".")

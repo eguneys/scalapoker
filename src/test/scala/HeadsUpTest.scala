@@ -9,7 +9,7 @@ class HeadsUpTest extends PokerTest {
 
     "should deal cards" in {
       Some(headsup) must beGame("""
-95b 90B!(5 10)~!
+95b 90B!10(5 10)~!
 """)
     }
 
@@ -23,7 +23,7 @@ class HeadsUpTest extends PokerTest {
 
       "dont allow check" in {
         Some(headsup) must bePoss(Call, Fold)
-        Some(headsup) must bePossRaise(Raise(5))
+        Some(headsup) must bePossRaise(Raise(10))
       }
 
       "players call check" in {
@@ -31,12 +31,12 @@ class HeadsUpTest extends PokerTest {
         headsup.playActs(Call) must bePossRaise(Raise(10))
 
         headsup.playActs(Call) must beGame("""
-90b 90B!(10 10)~!
+90b 90B!10(10 10)~!
 C
 """)
 
         headsup.playActs(Call, Check) must beGame("""
-90b 90B!(10 10)~!
+90b 90B!10(10 10)~!
 
 H C
 """)
@@ -46,7 +46,7 @@ H C
         headsup.playActs(Fold) must bePoss()
 
         headsup.playActs(Fold) must beGame("""
-95b 90B!(. 10)~!
+95b 90B!10(5 10)~!
 F
 """)
       }
@@ -56,8 +56,8 @@ F
     "after rounds end" in {
       headsup.playActs(Fold) must beSome.like {
         case game =>
-          game.endRounds(List(0, 1)) must beGame("""
-95 105b!(. .)~!
+          game.endRounds(List(1, 2)) must beGame("""
+95 105b!0(. .)~!
 """)
       }
 

@@ -10,7 +10,7 @@ case class History(
 
   val playersActedRecently = recentActs.length
 
-  def addAct(act: Act) = 
+  def addAct(act: Act) =
     copy(actingRounds = actingRounds.addRecentAct(act))
 
   def addRound = copy(actingRounds = actingRounds.addRound)

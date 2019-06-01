@@ -1,6 +1,6 @@
 package poker
 
-case class PotBuilder(bets: Map[StackIndex, Int]) {
+case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int]) {
 
   lazy val players = bets.keys
 
@@ -9,10 +9,7 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
   lazy val highestBet = if (bets.values.isEmpty) 0
   else bets.values.reduce(Math.max(_, _))
 
-  lazy val lowestBet = if(bets.values.isEmpty) 0
-  else bets.values.reduce(Math.min(_, _))
-
-  lazy val minRaise = highestBet - lowestBet
+  lazy val minRaise = lastFullRaise
 
   def howOnTop(onTop: Int) =
     highestBet + onTop
@@ -26,20 +23,15 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
 
   def toCall(index: StackIndex) = highestBet - bets.getOrElse(index, 0)
 
-  def addAllToPot(indexes: List[StackIndex]) = 
-    indexes.foldLeft(Some(this): Option[PotBuilder]) { (acc, index) =>
-      acc flatMap (_.updateBet(index, 0))
-    }
+  def pot(folds: List[StackIndex]): Pot = Pot(amount, players.toList.filterNot(folds.toSet))
 
-  def pot: Pot = Pot(amount, players.toList)
-
-  def blinds(small: StackIndex, big: StackIndex, indexes: List[StackIndex], amount: Int): Option[PotBuilder] = if (highestBet > 0)
+  def blinds(small: StackIndex, big: StackIndex, amount: Int): Option[PotBuilder] = if (highestBet > 0)
     None
   else for {
-    b1 <- addAllToPot(indexes)
-    b2 <- b1.updateBet(small, amount / 2)
+    b2 <- updateBet(small, amount / 2)
     b3 <- b2.updateBet(big, amount)
-  } yield b3
+    b4 = b3.copy(lastFullRaise = amount)
+  } yield b4
 
   def bet(index: StackIndex, amount: Int): Option[PotBuilder] = None
 
@@ -56,11 +48,16 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
     else
       updateBet(index, highestBet)
 
-  def raise(index: StackIndex, onTop: Int): Option[PotBuilder] =
-    updateBet(index, howOnTop(onTop))
+  def raise(index: StackIndex, onTop: Int): Option[PotBuilder] = if (onTop < minRaise)
+    None
+  else
+    for {
+      b1 <- updateBet(index, howOnTop(onTop))
+      b2 = b1.copy(lastFullRaise = onTop)
+    } yield b2
 
   def fold(index: StackIndex):  Option[PotBuilder] =
-    Some(copy(bets = bets - index))
+    Some(this)
 
   private def updateBet(index: StackIndex, amount: Int): Option[PotBuilder] =
     Some(copy(bets = bets + (index -> amount)))
@@ -83,7 +80,7 @@ case class Pot(amount: Int, involved: List[StackIndex]) {
 
 object PotBuilder {
 
-  def empty = PotBuilder(Map.empty[StackIndex, Int])
+  def empty = PotBuilder(0, Map.empty[StackIndex, Int])
 
 }
 
