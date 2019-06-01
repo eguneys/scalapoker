@@ -19,7 +19,9 @@ case class Game(board: Board) {
     )
   }
 
-  def deal(blinds: Int): Option[Game] = board.deal(blinds) map { b => copy(board = b) }
+  def deal(blinds: Int): Option[Game] = updateBoard(_.deal(blinds))
+
+  def endRounds(values: List[Int]) = updateBoard(_.endRounds(values))
 
   private def move(act: Act) = {
     def findMove(act: Act) = act match {
@@ -30,6 +32,10 @@ case class Game(board: Board) {
       m <- findMove(act)
     } yield m
   }
+
+  private def updateBoard(f: Board => Option[Board]) =
+    f(board) map { b => copy(board = b) }
+
 }
 
 object Game {

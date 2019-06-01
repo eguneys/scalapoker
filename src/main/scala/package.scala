@@ -8,6 +8,8 @@ package object poker
 
   type ActingRound = List[Act]
 
+  type SeatIndex = Int
+  
   type StackIndex = Int
 
 }

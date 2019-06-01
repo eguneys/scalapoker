@@ -51,6 +51,17 @@ F
 """)
       }
     }
+
+
+    "after rounds end" in {
+      headsup.playActs(Fold) must beSome.like {
+        case game =>
+          game.endRounds(List(0, 1)) must beGame("""
+95 105b!(. .)~!
+""")
+      }
+
+    }
   }
 
 }

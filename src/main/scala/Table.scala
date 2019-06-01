@@ -13,13 +13,13 @@ case class Table(stacks: Vector[Int], blinds: Int, game: Option[Game] = None) {
 
   lazy val stacksCompact = stacks.filter(_>0).toList
 
-  def isEmpty(index: Int): Boolean =
+  def isEmpty(index: SeatIndex): Boolean =
     stacks(index) <= 0
 
-  def canJoinIndex(index: Int): Boolean = 
+  def canJoinIndex(index: SeatIndex): Boolean = 
     index >= 0 && index < capacity && isEmpty(index)
 
-  def canLeaveIndex(index: Int): Boolean = 
+  def canLeaveIndex(index: SeatIndex): Boolean = 
     index >= 0 && index < capacity && !isEmpty(index)
 
   def stack(seat: Int): Int = {

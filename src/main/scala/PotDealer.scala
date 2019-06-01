@@ -20,11 +20,30 @@ case class PotDealer(
 
   def toCall(index: StackIndex) = runningPot.toCall(index)
 
+  lazy val nextButton = (button + 1) % players
+
   lazy val playersInPot = runningPot.players.size
 
   lazy val stackIndexes = stacks.toList.zipWithIndex.map(_._2)
 
   lazy val isSettled = blindsPosted && runningPot.isSettled
+
+  lazy val pots = runningPot.pot :: sidePots
+
+  def distribute(values: List[Int]): Option[PotDealer] = {
+    val updated = pots.map(_.distribute(values)).foldLeft(Some(this): Option[PotDealer]) {
+      case (d, dists) => dists.foldLeft(d) {
+        case (Some(d), dist) => d.updateStacks(dist.index, dist.amount)
+        case _ => None
+    }
+    }
+
+    updated map(_.copy(
+      runningPot = PotBuilder.empty,
+      button = nextButton,
+      blindsPosted = false
+    ))
+  }
 
   def blinds(blinds: Int): Option[PotDealer] = for {
     d1 <- updateStacks(smallBlind, -blinds / 2)
@@ -79,6 +98,6 @@ case class PotDealer(
 
 object PotDealer {
 
-  def empty(stacks: AtLeastTwo[Int]) = PotDealer(0, false, stacks, PotBuilder(Map.empty[StackIndex, Int]), Nil)
+  def empty(stacks: AtLeastTwo[Int]) = PotDealer(0, false, stacks, PotBuilder.empty, Nil)
 
 }

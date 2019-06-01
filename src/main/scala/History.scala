@@ -15,6 +15,8 @@ case class History(
 
   def addRound = copy(actingRounds = actingRounds.addRound)
 
+  def endRounds = copy(actingRounds = ActingRounds.empty)
+
 }
 
 object History {

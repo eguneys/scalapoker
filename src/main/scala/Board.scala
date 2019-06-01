@@ -45,7 +45,7 @@ case class Board(
   // c r . c
   // c
 
-  val roundsEnd = river || playersInPot == 1
+  val roundsEnd = (river || playersInPot == 1)
 
   private lazy val nextToAct = {
     def nextIndex(skipIndexes: List[StackIndex], i: StackIndex): StackIndex = {
@@ -80,6 +80,15 @@ case class Board(
       None
     else
       Some(copy(history = history.addRound))
+
+  def endRounds(values: List[Int]): Option[Board] =
+    if (!recentActsSettled || !roundsEnd)
+      None
+    else
+      for {
+        p <- pots.distribute(values)
+        h = history.endRounds
+      } yield copy(pots = p, history = h)
 
   def deal(blinds: Int): Option[Board] =
     for {

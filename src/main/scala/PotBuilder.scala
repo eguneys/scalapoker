@@ -31,6 +31,8 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
       acc flatMap (_.updateBet(index, 0))
     }
 
+  def pot: Pot = Pot(amount, players.toList)
+
   def blinds(small: StackIndex, big: StackIndex, indexes: List[StackIndex], amount: Int): Option[PotBuilder] = if (highestBet > 0)
     None
   else for {
@@ -64,6 +66,25 @@ case class PotBuilder(bets: Map[StackIndex, Int]) {
     Some(copy(bets = bets + (index -> amount)))
 }
 
-case class Pot(amount: Int, involved: AtLeastTwo[StackIndex]) {
+case class Pot(amount: Int, involved: List[StackIndex]) {
+
+  def distribute(values: List[Int]): List[PotDistribution] = {
+    val topIndexes = values.zipWithIndex
+      .filter(p => involved.contains(p._2))
+      .groupBy(_._1)
+      .toSeq.sortWith(_._1 > _._1)
+      .head._2
+      .map(_._2)
+
+    topIndexes.map(PotDistribution(_, amount / topIndexes.length))
+  }
 
 }
+
+object PotBuilder {
+
+  def empty = PotBuilder(Map.empty[StackIndex, Int])
+
+}
+
+case class PotDistribution(index: StackIndex, amount: Int)
