@@ -82,9 +82,10 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int], involved: 
     Some(copy(involved = involved - index))
 
   def allin(index: StackIndex, amount: Int): Option[PotBuilder] = {
+    val toAmount = bet(index) + amount
     for {
-      b1 <- updateBet(index, bet(index) + amount)
-      raiseAmount = amount - highestBet
+      b1 <- updateBet(index, toAmount)
+      raiseAmount = toAmount - highestBet
       b2 = if (raiseAmount > lastFullRaise) b1.copy(lastFullRaise = raiseAmount) else b1
     } yield b2
   }

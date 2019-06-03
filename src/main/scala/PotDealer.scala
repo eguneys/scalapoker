@@ -19,6 +19,10 @@ case class PotDealer(
 
   lazy val playersInPot = runningPot.involved.size
 
+  lazy val allInPlayers = stacks.toList.zipWithIndex.filter(_._1 == 0).map(_._2)
+
+  lazy val activeBettingPlayers = (runningPot.involved -- allInPlayers).size
+
   def toCall(index: StackIndex) = runningPot.toCall(index)
 
   def toAllIn(index: StackIndex) = stacks(index) - runningPot.bet(index)

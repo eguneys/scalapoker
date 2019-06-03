@@ -61,6 +61,13 @@ F
 """)
       }
     }
+
+    "all in " in {
+      headsup.playActs(AllIn) must beGame("""
+0b 90B!90(100 10)~!
+A
+""")
+    }
   }
 
 }

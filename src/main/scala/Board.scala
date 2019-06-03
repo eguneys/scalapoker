@@ -33,12 +33,15 @@ case class Board(
   else
     firstToActOnFlop
 
+  lazy val playersInPot = pots.playersInPot
+
+  lazy val activeBettingPlayersInPot = pots.activeBettingPlayers
 
   lazy val playersActedRecently = history.playersActedRecently
 
   lazy val recentActsSettled = pots.isSettled && playersActedRecently >= playersInPot
 
-  lazy val roundsEnd = ((river && recentActsSettled) || playersInPot == 1)
+  lazy val roundsEnd = ((river && recentActsSettled) || activeBettingPlayersInPot == 1)
 
   // 0 1 2 3
   // c c f r 
@@ -68,8 +71,6 @@ case class Board(
 
 
   private lazy val nextToAct = foldsAndNextToAct._1
-
-  private lazy val playersInPot = pots.playersInPot
 
   lazy val toAct = if (preflop && !blindsPosted)
     None
