@@ -45,10 +45,11 @@ object PotVisual {
                 case "." => acc
                 case v => acc + (iBet._2 -> v.toInt)
               }
-            }
+            },
+            stacks.toList.zipWithIndex.map(_._2).toSet
           )
-      },
-      sidePots = pots.map(readPot) toList
+      }
+      // sidePots = pots.map(readPot) toList
     )
   }
 
@@ -70,9 +71,9 @@ object PotVisual {
           dealer.runningPot.bets.getOrElse(i, ".")
       } mkString " ") + ")~"
 
-    val pots = dealer.sidePots.map(writePot) mkString "!"
+    // val pots = dealer.sidePots.map(writePot) mkString "!"
 
-    stacks + "!" + runningPot + "!" + pots
+    stacks + "!" + runningPot + "!"
   }
 
   private def readPot(src: String): Pot = src match {

@@ -4,7 +4,7 @@ case class Game(board: Board) {
 
   lazy val actor = Actor(board)
 
-  def moves: List[Move] = actor.validMoves
+  lazy val moves: List[Move] = actor.validMoves
 
   def raiseMove(raise: Raise): Option[Move] = actor.validRaise(raise)
 

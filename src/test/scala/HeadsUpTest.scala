@@ -22,12 +22,12 @@ class HeadsUpTest extends PokerTest {
     "on pre flop" should {
 
       "dont allow check" in {
-        Some(headsup) must bePoss(Call, Fold)
+        Some(headsup) must bePoss(Call, Fold, AllIn)
         Some(headsup) must bePossRaise(Raise(10))
       }
 
       "players call check" in {
-        headsup.playActs(Call) must bePoss(Check, Fold)
+        headsup.playActs(Call) must bePoss(Check, Fold, AllIn)
         headsup.playActs(Call) must bePossRaise(Raise(10))
 
         headsup.playActs(Call) must beGame("""
@@ -60,7 +60,6 @@ F
 95 105b!0(. .)~!
 """)
       }
-
     }
   }
 

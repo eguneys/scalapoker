@@ -7,7 +7,7 @@ case class Actor(board: Board) {
       case Check => board.check map { move(Check, _) }
       case Call => board.call map { move(Call, _) }
       case Fold => board.fold map { move(Fold, _) }
-      case AllIn => None
+      case AllIn => board.allin map { move(AllIn, _) }
     })
 
   def validRaise(raise: Raise): Option[Move] =

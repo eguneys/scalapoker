@@ -4,8 +4,7 @@ case class PotDealer(
   button: StackIndex,
   blindsPosted: Boolean,
   stacks: AtLeastTwo[Int],
-  runningPot: PotBuilder,
-  sidePots: List[Pot]) {
+  runningPot: PotBuilder) {
 
   val players = stacks.length
 
@@ -18,7 +17,11 @@ case class PotDealer(
 
   val bigBlind = (smallBlind + 1) % players
 
+  lazy val playersInPot = runningPot.involved.size
+
   def toCall(index: StackIndex) = runningPot.toCall(index)
+
+  def toAllIn(index: StackIndex) = stacks(index) - runningPot.bet(index)
 
   lazy val nextButton = (button + 1) % players
 
@@ -26,10 +29,10 @@ case class PotDealer(
 
   lazy val isSettled = blindsPosted && runningPot.isSettled
 
-  def pots(folds: List[StackIndex]) = runningPot.pot(folds) :: sidePots
+  lazy val pots = runningPot.pots(stacks)
 
-  def distribute(folds: List[StackIndex], values: List[Int]): Option[PotDealer] = {
-    val updated = pots(folds).map(_.distribute(values)).foldLeft(Some(this): Option[PotDealer]) {
+  def distribute(values: List[Int]): Option[PotDealer] = {
+    val updated = pots.map(_.distribute(values)).foldLeft(Some(this): Option[PotDealer]) {
       case (d, dists) => dists.foldLeft(d) {
         case (Some(d), dist) => d.updateStacks(dist.index, dist.amount)
         case _ => None
@@ -37,7 +40,7 @@ case class PotDealer(
     }
 
     updated map(_.copy(
-      runningPot = PotBuilder.empty,
+      runningPot = PotBuilder.empty(stackIndexes),
       button = nextButton,
       blindsPosted = false
     ))
@@ -49,6 +52,11 @@ case class PotDealer(
     d3 = d2.copy(blindsPosted = true)
     d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, blinds))
   } yield d4
+
+  def allin(index: StackIndex): Option[PotDealer] = for {
+    d1 <- updatePot(_.allin(index, stacks(index)))
+    d2 <- d1.updateStacks(index, -stacks(index))
+  } yield d2
 
   def check(index: StackIndex): Option[PotDealer] =
     updatePot(_.check(index))
@@ -77,7 +85,7 @@ case class PotDealer(
 
   private def updateStacks(index: StackIndex, amount: Int): Option[PotDealer] = {
     val newAmount = stacks(index) + amount
-    if (newAmount <= 0)
+    if (newAmount < 0)
       None
     else
       Some(copy(stacks = stacks.updated(index, newAmount)))
@@ -94,6 +102,6 @@ case class PotDealer(
 
 object PotDealer {
 
-  def empty(stacks: AtLeastTwo[Int]) = PotDealer(0, false, stacks, PotBuilder.empty, Nil)
+  def empty(stacks: AtLeastTwo[Int]) = PotDealer(0, false, stacks, PotBuilder.empty(stacks.toList.zipWithIndex.map(_._2)))
 
 }

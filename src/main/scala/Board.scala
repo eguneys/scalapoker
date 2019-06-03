@@ -69,13 +69,7 @@ case class Board(
 
   private lazy val nextToAct = foldsAndNextToAct._1
 
-  private lazy val foldedPlayers = foldsAndNextToAct._2
-
-  private lazy val allPlayers = pots.stackIndexes
-
-  private lazy val allPlayersInPot = allPlayers.filterNot(foldedPlayers.toSet)
-
-  private lazy val playersInPot = allPlayersInPot.length
+  private lazy val playersInPot = pots.playersInPot
 
   lazy val toAct = if (preflop && !blindsPosted)
     None
@@ -96,7 +90,7 @@ case class Board(
       None
     else
       for {
-        p <- pots.distribute(foldedPlayers, values)
+        p <- pots.distribute(values)
         h = history.endRounds
       } yield copy(pots = p, history = h)
   }
@@ -124,6 +118,11 @@ case class Board(
   def fold: Option[Board] = for {
     toAct <- toAct
     p <- pots.fold(toAct)
+  } yield copy(pots = p)
+
+  def allin: Option[Board] = for {
+    toAct <- toAct
+    p <- pots.allin(toAct)
   } yield copy(pots = p)
 
   def updateHistory(f: History => History) = 

@@ -121,6 +121,11 @@ class BoardTest extends PokerTest {
       }
 
       "after fold" in {
+        twoPlayerGame.playActs(Fold) must beSome.like {
+          case b =>
+            b.board.toAct must beNone
+        }
+
         // b s B .
         // C R F C
         fourPlayerGame.playActs(Call, Call, Raise(10), Fold) must beSome.like {
@@ -136,6 +141,56 @@ class BoardTest extends PokerTest {
         }
       }
 
+      "after allin" in {
+
+        twoPlayerGame.playActs(AllIn) must beSome.like {
+          case b =>
+            b.board.toAct must beNone
+        }
+
+        // b s B .
+        // C R F C
+        fourPlayerGame.playActs(Call, Call, Raise(10), AllIn) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(3)
+        }
+
+        // b s B .
+        // CF R F CR
+        fourPlayerGame.playActs(Call, Call, Raise(10), Fold, Raise(10), AllIn) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+      }
+
+      "after allin skip" in {
+
+        // b s B .
+        // CA RA A CA
+        fourPlayerGame.playActs(Call, Call, Raise(10), AllIn, AllIn, AllIn) must beSome.like {
+          case b =>
+            b.board.toAct must beNone
+        }
+      }
+    }
+
+    "find to act after flop" in {
+      "after raise" in {
+
+        // b s B .
+        // CC CC R C
+        fourPlayerGame.playActs(Call, Call, Call, Raise(10), Call, Call, Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+
+        // b s B
+        // CC CC R
+        threePlayerGame.playActs(Call, Call, Raise(10), Call, Call) must beSome.like {
+          case b =>
+            b.board.toAct must_== Some(1)
+        }
+      }
     }
   }
 } 

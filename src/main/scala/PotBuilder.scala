@@ -1,8 +1,6 @@
 package poker
 
-case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int]) {
-
-  lazy val players = bets.keys
+case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int], involved: Set[StackIndex]) {
 
   lazy val amount = bets.values.reduce(_+_)
 
@@ -11,11 +9,19 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int]) {
 
   lazy val minRaise = lastFullRaise
 
+  lazy val all = bets.keys.toSet
+
+  lazy val involvedBets = involved map (i => i -> bets(i))
+
+  lazy val allBets = all map (i => i -> bets(i))
+
+  def bet(index: StackIndex): Int = bets getOrElse (index, 0)
+
   def howOnTop(onTop: Int) =
     highestBet + onTop
 
   def howMore(index: StackIndex, onTop: Int) =
-    howOnTop(onTop) - (bets getOrElse (index, 0))
+    howOnTop(onTop) - bet(index)
 
   def isSettled = bets.keys.forall(isHighest)
 
@@ -23,7 +29,25 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int]) {
 
   def toCall(index: StackIndex) = highestBet - bets.getOrElse(index, 0)
 
-  def pot(folds: List[StackIndex]): Pot = Pot(amount, players.toList.filterNot(folds.toSet))
+  def pots(stacks: AtLeastTwo[Int]): List[Pot] = {
+    def sidePot(bets: List[Tuple2[Int, Set[StackIndex]]], foldedBets: List[Int], acc: List[Pot]): List[Pot] = bets match {
+      case bet::tail if (!bet._2.subsetOf(involved)) =>
+        sidePot(tail, bet._1 :: foldedBets, acc)
+      case bet::tail => {
+        val involved = bet._2 ++ tail.flatMap(tailBet => tailBet._2)
+        val newTail = tail.map(tailBet => (tailBet._1 - bet._1, tailBet._2))
+        val folded = foldedBets.foldLeft(0)(_+_)
+        val newPot = Pot(bet._1 * involved.size + folded, involved.toList.sorted)
+        sidePot(newTail, Nil, newPot :: acc)
+      }
+      case _ => acc
+    }
+
+    sidePot(allBets
+      .groupBy(_._2)
+      .toSeq.sortBy(_._1)
+      .map(g => (g._1, g._2.map(_._1))).toList, Nil, Nil).reverse
+  }
 
   def blinds(small: StackIndex, big: StackIndex, amount: Int): Option[PotBuilder] = if (highestBet > 0)
     None
@@ -33,9 +57,7 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int]) {
     b4 = b3.copy(lastFullRaise = amount)
   } yield b4
 
-  def bet(index: StackIndex, amount: Int): Option[PotBuilder] = None
-
-  def check(index: StackIndex): Option[PotBuilder] = 
+  def check(index: StackIndex): Option[PotBuilder] =
     if (isHighest(index))
       Some(this)
     else {
@@ -57,7 +79,15 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int]) {
     } yield b2
 
   def fold(index: StackIndex):  Option[PotBuilder] =
-    Some(this)
+    Some(copy(involved = involved - index))
+
+  def allin(index: StackIndex, amount: Int): Option[PotBuilder] = {
+    for {
+      b1 <- updateBet(index, bet(index) + amount)
+      raiseAmount = amount - highestBet
+      b2 = if (raiseAmount > lastFullRaise) b1.copy(lastFullRaise = raiseAmount) else b1
+    } yield b2
+  }
 
   private def updateBet(index: StackIndex, amount: Int): Option[PotBuilder] =
     Some(copy(bets = bets + (index -> amount)))
@@ -80,7 +110,7 @@ case class Pot(amount: Int, involved: List[StackIndex]) {
 
 object PotBuilder {
 
-  def empty = PotBuilder(0, Map.empty[StackIndex, Int])
+  def empty(involved: List[StackIndex]) = PotBuilder(0, Map.empty[StackIndex, Int], involved.toSet)
 
 }
 
