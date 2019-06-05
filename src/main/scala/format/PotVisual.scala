@@ -7,14 +7,14 @@ object PotVisual {
 
   private val PotBuilderPattern = "(\\d+)\\(([\\d*|\\. ?]*)\\)~".r
 
-  private val PotPattern = "(\\d*) \\(([\\d* ?]*)\\)".r
+  private val BettingActionPattern = "(\\d+?)".r
 
   def <<(source: String): PotDealer = {
     val potstacks = source split "!"
     val stacks = potstacks.head split " "
     val bets = potstacks.drop(1).head
 
-    val pots = potstacks.drop(2)
+    val bettingActions = potstacks.drop(2).headOption
 
     PotDealer(
       stacks = stacks.map { _ match {
@@ -28,6 +28,10 @@ object PotVisual {
           case _ => false
         }
       }.get._2,
+      allowRaiseUntil = bettingActions flatMap {
+        case BettingActionPattern(index) => Some(index.toInt)
+        case BettingActionPattern("") => None
+      },
       blindsPosted = stacks.foldLeft(false) { 
         case (true, _) => true
         case (false, s) => s match {
@@ -39,17 +43,16 @@ object PotVisual {
       runningPot = bets match {
         case PotBuilderPattern(fullRaise, bets) =>
           PotBuilder(
-            fullRaise.toInt,
-            (bets split " " ).toList.zipWithIndex.foldLeft(Map.empty[StackIndex, Int]) { (acc, iBet) => 
+            lastFullRaise = fullRaise.toInt,
+            bets = (bets split " " ).toList.zipWithIndex.foldLeft(Map.empty[StackIndex, Int]) { (acc, iBet) => 
               iBet._1 match {
                 case "." => acc
                 case v => acc + (iBet._2 -> v.toInt)
               }
             },
-            stacks.toList.zipWithIndex.map(_._2).toSet
+            involved = stacks.toList.zipWithIndex.map(_._2).toSet
           )
       }
-      // sidePots = pots.map(readPot) toList
     )
   }
 
@@ -71,19 +74,8 @@ object PotVisual {
           dealer.runningPot.bets.getOrElse(i, ".")
       } mkString " ") + ")~"
 
-    // val pots = dealer.sidePots.map(writePot) mkString "!"
+    val bettingAction = dealer.allowRaiseUntil getOrElse ""
 
-    stacks + "!" + runningPot + "!"
+    stacks + "!" + runningPot + "!" + bettingAction
   }
-
-  private def readPot(src: String): Pot = src match {
-    case PotPattern(pot, groups) =>
-      Pot(amount = pot.toInt,
-        involved = (groups split " " toList).map (_.toInt))
-  }
-
-  private def writePot(pot: Pot): String = {
-    pot.amount + " (" + (pot.involved.toList mkString " ") + ")"
-  }
-
 }

@@ -23,7 +23,10 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int], involved: 
   def howMore(index: StackIndex, onTop: Int) =
     howOnTop(onTop) - bet(index)
 
-  def isSettled = bets.keys.forall(isHighest)
+  def isFullRaise(index: StackIndex, allInBet: Int) =
+    (bet(index) + allInBet) - highestBet >= lastFullRaise
+
+  def isSettled(activePlayers: Set[StackIndex]) = activePlayers.forall(isHighest)
 
   def isHighest(index: StackIndex) = bets.get(index).exists(_ == highestBet)
 
@@ -68,7 +71,9 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int], involved: 
     if (isHighest(index))
       None
     else
-      updateBet(index, highestBet)
+      for {
+        d1 <- updateBet(index, highestBet)
+      } yield d1
 
   def raise(index: StackIndex, onTop: Int): Option[PotBuilder] = if (onTop < minRaise)
     None
@@ -111,7 +116,10 @@ case class Pot(amount: Int, involved: List[StackIndex]) {
 
 object PotBuilder {
 
-  def empty(involved: List[StackIndex]) = PotBuilder(0, Map.empty[StackIndex, Int], involved.toSet)
+  def empty(involved: List[StackIndex]) = PotBuilder(
+    lastFullRaise = 0,
+    bets = Map.empty[StackIndex, Int],
+    involved = involved.toSet)
 
 }
 

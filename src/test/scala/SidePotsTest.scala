@@ -14,7 +14,7 @@ class SidePotTest extends PokerTest {
       dealer.seq(
         _.blinds(10),
         _.allin(3)
-      ) must bePot("100b 95s 90B 0 100 100!90(. 5 10 100 . .)~!")
+      ) must bePot("100b 95s 90B 0 100 100!90(. 5 10 100 . .)~!3~")
 
     }
 
@@ -24,27 +24,27 @@ class SidePotTest extends PokerTest {
         _.fold(3),
         _.raise(4, 35),
         _.allin(5)
-      ) must bePot("100b 85s 70B 70 15 0!35(. 5 10 . 45 50)~!")
+      ) must bePot("100b 85s 70B 70 15 0!35(. 5 10 . 45 50)~!5")
     }
 
     "all in not enough money" in {
       dealer3.seq(
         _.blinds(200),
         _.raise(0, 300)
-      ) must bePot("500b 900s 550B!300(500 100 200)~!")
+      ) must bePot("500b 900s 550B!300(500 100 200)~!0~")
 
       dealer3.seq(
         _.blinds(200),
         _.raise(0, 300),
         _.call(1)
-      ) must bePot("500b 500s 550B!300(500 500 200)~!")
+      ) must bePot("500b 500s 550B!300(500 500 200)~!0~")
 
       dealer3.seq(
         _.blinds(200),
         _.raise(0, 300),
         _.call(1),
         _.allin(2)
-      ) must bePot("500b 500s 0B!300(500 500 750)~!")
+      ) must bePot("500b 500s 0B!300(500 500 750)~!2")
     }
 
     "side pots" in {
@@ -59,7 +59,7 @@ class SidePotTest extends PokerTest {
         _.call(2)
       )
 
-      dealer2 must bePot("0b 0s 25B 0 0!98(50 25 100 100 75)~!")
+      dealer2 must bePot("0b 0s 25B 0 0!98(50 25 100 100 75)~!1")
 
       dealer2 must beSome.like {
         case d =>
@@ -85,7 +85,7 @@ class SidePotTest extends PokerTest {
         _.call(4)
       )
 
-      dealer2 must bePot("0b 0s 75B 98 25!48(50 25 50 2 50)~!")
+      dealer2 must bePot("0b 0s 75B 98 25!48(50 25 50 2 50)~!1~")
 
       dealer2 must beSome.like {
         case d =>

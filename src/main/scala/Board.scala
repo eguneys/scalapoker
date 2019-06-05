@@ -33,13 +33,11 @@ case class Board(
   else
     firstToActOnFlop
 
-  lazy val playersInPot = pots.playersInPot
-
-  lazy val activeBettingPlayersInPot = pots.activeBettingPlayers
+  lazy val activeBettingPlayersInPot = pots.activeBettingPlayers.size
 
   lazy val playersActedRecently = history.playersActedRecently
 
-  lazy val recentActsSettled = pots.isSettled && playersActedRecently >= playersInPot
+  lazy val recentActsSettled = pots.isSettled
 
   lazy val roundsEnd = ((river && recentActsSettled) || activeBettingPlayersInPot == 1)
 
@@ -74,8 +72,9 @@ case class Board(
 
   lazy val toAct = if (preflop && !blindsPosted)
     None
-  else if (!recentActsSettled && !roundsEnd)
-      Some(nextToAct)
+  else if (!(recentActsSettled || roundsEnd)) {
+    Some(nextToAct)
+  }
     else
       None
 
@@ -83,7 +82,10 @@ case class Board(
     if (roundsEnd || !recentActsSettled)
       None
     else
-      Some(copy(history = history.addRound))
+      for {
+        d1 <- Some(copy(history = history.addRound))
+        d2 = d1.copy(pots = d1.pots.nextRound(d1.firstToAct))
+      } yield d2
   }
 
   def endRounds(values: List[Int]): Option[Board] = {

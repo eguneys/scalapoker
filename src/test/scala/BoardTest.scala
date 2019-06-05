@@ -121,10 +121,16 @@ class BoardTest extends PokerTest {
       }
 
       "after fold" in {
+
         twoPlayerGame.playActs(Fold) must beSome.like {
           case b =>
             b.board.toAct must beNone
         }
+
+        twoPlayerGame.playActs(Fold) must beGame("""
+95b 90B!10(5 10)~!1
+F
+""")
 
         // b s B .
         // C R F C
@@ -175,7 +181,7 @@ class BoardTest extends PokerTest {
     }
 
     "find to act after flop" in {
-      "after raise" in {
+      "after raise 2" in {
 
         // b s B .
         // CC CC R C
@@ -190,6 +196,93 @@ class BoardTest extends PokerTest {
           case b =>
             b.board.toAct must_== Some(1)
         }
+      }
+    }
+
+    "after all in not a full raise" should {
+
+      val game = makeGame(List(1500, 1000, 750)).deal(200).get
+
+      val game2 = game.playActs(Raise(300), Call, AllIn)
+
+
+      "find to act" in {
+        game2 must beGame("""
+1000b 500s 0B!300(500 500 750)~!
+A C R300
+""")
+
+        game2 must beSome.like {
+          case g =>
+            g.board.toAct must_== Some(0)
+            g.board.actingRounds.isPreflop must_== true
+        }
+      }
+
+      "allow call" in {
+        game2.get.playActs(Call, Call) must beGame("""
+750b 250s 0B!300(750 750 750)~!0
+
+C C A C R300
+""")
+      }
+
+      "full raise rule dont allow reraise" in {
+        game2 must bePoss(Call, Fold)
+
+        game2.get.playActs(Raise(500)) must beNone
+      }
+
+      "full raise rule dont allow second allin" in {
+        val game = makeGame(List(7500, 810, 820)).deal(200).get
+
+        val game2 = game.playActs(
+          Raise(300), Call, Raise(300),
+          Call, AllIn)
+
+        game2 must bePoss(Call, Fold)
+      }
+
+      "full raise rule dont allow rereaise extra call" in {
+        val game = makeGame(List(7500, 810, 7500)).deal(200).get
+
+        val game2 = game.playActs(
+          Raise(300), Call, Raise(300),
+          Call, AllIn)
+
+        game2 must beGame("""
+6700b 0s 6700B!300(800 810 800)~!
+A C R300 C R300
+""")
+
+        game2 must bePoss(Call, Fold)
+
+        game2 must beSome.like {
+          case g =>
+            g.board.toAct must_== Some(2)
+        }
+      }
+
+      "full raise rule allow reraise next round" in {
+        val game = makeGame(List(7500, 800, 7500)).deal(200).get
+
+        val game2 = game.playActs(
+          Raise(300), Call, Raise(300),
+          Call, AllIn)
+
+        game2 must beGame("""
+6700b 0s 6700B!300(800 800 800)~!0
+
+A C R300 C R300
+""")
+
+//         game2 must bePoss(Check, Fold)
+
+//         game2.get.playActs(Check, Check) must beGame("""
+// 6700b 0s 6700B!300(800 800 800)~5!0
+
+// H H A C R300 C R300
+// """)
       }
     }
   }
