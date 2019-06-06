@@ -9,7 +9,7 @@ class HeadsUpTest extends PokerTest {
 
     "should deal cards" in {
       Some(headsup) must beGame("""
-95b 90B!10(5 10)~!
+95b 90B!10(5 10)~!1
 """)
     }
 
@@ -31,12 +31,12 @@ class HeadsUpTest extends PokerTest {
         headsup.playActs(Call) must bePossRaise(Raise(10))
 
         headsup.playActs(Call) must beGame("""
-90b 90B!10(10 10)~!
+90b 90B!10(10 10)~!1
 C
 """)
 
         headsup.playActs(Call, Check) must beGame("""
-90b 90B!10(10 10)~!
+90b 90B!10(10 10)~!0
 
 H C
 """)
@@ -46,7 +46,7 @@ H C
         headsup.playActs(Fold) must bePoss()
 
         headsup.playActs(Fold) must beGame("""
-95b 90B!10(5 10)~!
+95b 90B!10(5 10)~!1
 F
 """)
       }
@@ -64,7 +64,7 @@ F
 
     "all in " in {
       headsup.playActs(AllIn) must beGame("""
-0b 90B!90(100 10)~!
+0b 90B!90(100 10)~!1
 A
 """)
     }

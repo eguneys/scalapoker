@@ -20,14 +20,14 @@ class ActingRoundsTest extends PokerTest {
 
         "call" in {
           dealt.playActs(Call) must beGame("""
-90b 90B!10(10 10)~!
+90b 90B!10(10 10)~!1
 C
 """)
         }
 
         "call check" in {
           dealt.playActs(Call, Check) must beGame("""
-90b 90B!10(10 10)~!
+90b 90B!10(10 10)~!0
 
 H C
 """)
@@ -35,7 +35,7 @@ H C
 
         "call check check" in {
           dealt.playActs(Call, Check, Check) must beGame("""
-90b 90B!10(10 10)~!
+90b 90B!10(10 10)~!0
 H
 H C
 """)

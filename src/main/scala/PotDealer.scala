@@ -49,7 +49,8 @@ case class PotDealer(
     updated map(_.copy(
       runningPot = PotBuilder.empty(stackIndexes),
       button = nextButton,
-      blindsPosted = false
+      blindsPosted = false,
+      allowRaiseUntil = None
     ))
   }
 
