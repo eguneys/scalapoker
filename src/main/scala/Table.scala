@@ -14,26 +14,20 @@ case class Table(stacks: Vector[Int], blinds: Int, game: Option[Game] = None) {
   lazy val stacksCompact = stacks.filter(_>0).toList
 
   def isEmpty(index: SeatIndex): Boolean =
-    stacks(index) <= 0
+    stacks.lift(index).exists(_==0)
 
-  def canJoinIndex(index: SeatIndex): Boolean = 
-    index >= 0 && index < capacity && isEmpty(index)
+  def isFull(index: SeatIndex): Boolean =
+    stacks.lift(index).exists(_!=0)
 
-  def canLeaveIndex(index: SeatIndex): Boolean = 
-    index >= 0 && index < capacity && !isEmpty(index)
-
-  def stack(seat: Int): Int = {
+  def stack(seat: Int): Option[Int] = {
     val index = seat - 1
-    if (index >= 0 && index < capacity)
-      stacks(index)
-    else
-      0
+    stacks.lift(index)
   }
 
   def joinStack(seat: Int, stack: Int): Valid[Table] = {
     val index = seat - 1
 
-    if (!canJoinIndex(index) || stack < minEntryStack)
+    if (!isEmpty(index) || stack < minEntryStack)
       failureNel(s"cant join seat")
     else
     {
@@ -48,7 +42,7 @@ case class Table(stacks: Vector[Int], blinds: Int, game: Option[Game] = None) {
   def leaveStack(seat: Int): Option[(Table, Int)] = {
     val index = seat - 1
 
-    if (!canLeaveIndex(index))
+    if (!isFull(index))
       None
     else {
       val stack = stacks(index)
@@ -77,7 +71,7 @@ case class Table(stacks: Vector[Int], blinds: Int, game: Option[Game] = None) {
     game flatMap { _(act) map {
       case (vg, move) =>
         val table = copy(game = Some(vg))
-        (table, move)
+        (table.dealerFinalizeTable, move)
     }
     }
 

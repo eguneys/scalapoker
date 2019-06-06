@@ -6,7 +6,7 @@ case class Dealer(nbPlayers: Int) {
   // flop 3
   // turn 1
   // river 1
-  val shuffled = scala.util.Random.shuffle(Dealer.deck)
+  lazy val shuffled = scala.util.Random.shuffle(Dealer.deck)
 
   def player(i: Int) =
     shuffled.drop(i * 2).take(2)

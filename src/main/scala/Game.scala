@@ -8,6 +8,12 @@ case class Game(board: Board) {
 
   def raiseMove(raise: Raise): Option[Move] = actor.validRaise(raise)
 
+  def shouldDeal: Boolean = !board.blindsPosted
+
+  def shouldShowdown: Boolean = board.roundsEnd
+
+  def toAct: Option[StackIndex] = board.toAct
+
   def apply(act: Act): Option[(Game, Move)] =
     move(act) map { move =>
       apply(move) -> move

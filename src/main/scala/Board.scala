@@ -46,7 +46,7 @@ case class Board(
   // c r . c
   // c
 
-  private lazy val foldsAndNextToAct = {
+  private lazy val nextToAct = {
     def nextIndex(skipIndexes: List[StackIndex], i: StackIndex): StackIndex = {
       val next = (i + 1) % players
       if (skipIndexes.exists(_==next))
@@ -55,20 +55,17 @@ case class Board(
         next
     }
 
-    def findFoldsAndToAct(acts: List[Act], skipIndexes: List[StackIndex], cur: StackIndex): (StackIndex, List[StackIndex]) = acts match {
+    def findToAct(acts: List[Act], skipIndexes: List[StackIndex], cur: StackIndex): StackIndex = acts match {
       case (Fold|AllIn)::as =>
-        findFoldsAndToAct(as, cur :: skipIndexes, nextIndex(skipIndexes, cur))
+        findToAct(as, cur :: skipIndexes, nextIndex(skipIndexes, cur))
       case _::as =>
-        findFoldsAndToAct(as, skipIndexes, nextIndex(skipIndexes, cur))
+        findToAct(as, skipIndexes, nextIndex(skipIndexes, cur))
       case Nil =>
-        (cur, skipIndexes)
+        cur
     }
 
-    findFoldsAndToAct(recentActs.reverse, Nil, firstToAct)
+    findToAct(recentActs.reverse, Nil, firstToAct)
   }
-
-
-  private lazy val nextToAct = foldsAndNextToAct._1
 
   lazy val toAct = if (preflop && !blindsPosted)
     None
