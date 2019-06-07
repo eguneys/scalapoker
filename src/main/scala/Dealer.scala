@@ -1,6 +1,6 @@
 package poker
 
-case class Dealer(nbPlayers: Int) {
+case class Dealer() {
 
   // player i 2
   // flop 3
@@ -8,20 +8,22 @@ case class Dealer(nbPlayers: Int) {
   // river 1
   lazy val shuffled = scala.util.Random.shuffle(Dealer.deck)
 
-  def player(i: Int) =
-    shuffled.drop(i * 2).take(2)
+  def flop = shuffled.take(3)
 
-  def flop = shuffled.drop(nbPlayers * 2).take(3)
-
-  def turn = shuffled.drop(nbPlayers * 2 + 3).head
+  def turn = shuffled.drop(3).head
 
   def river =
-    shuffled.drop(nbPlayers * 2 + 3 + 1).head
+    shuffled.drop(3 + 1).head
+
+  def player(i: Int) =
+    shuffled.drop(3 + 3 + i * 2).take(2)
 
   def middle = flop :+ turn :+ river
 
   def hand(i: Int) = Hand(player(i) ++ middle)
 
+
+  def hands(players: Int) = List.range(0, players) map hand
 }
 
 object Dealer {

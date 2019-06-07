@@ -56,7 +56,7 @@ F
     "after rounds end" in {
       headsup.playActs(Fold) must beSome.like {
         case game =>
-          game.endRounds(List(1, 2)) must beGame("""
+          game.endRounds map(_._1) must beGame("""
 95 105b!0(. .)~!
 """)
       }

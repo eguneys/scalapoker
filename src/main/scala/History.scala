@@ -4,6 +4,8 @@ case class History(
   actingRounds: ActingRounds) {
 
   val preflop = actingRounds.isPreflop
+  val flop = actingRounds.isFlop
+  val turn = actingRounds.isTurn
   val river = actingRounds.isRiver
 
   val recentActs = actingRounds.recentActs

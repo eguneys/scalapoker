@@ -6,6 +6,10 @@ case class Board(
 
   val preflop = history.preflop
 
+  val flop = history.flop
+
+  val turn = history.turn
+
   val river = history.river
 
   val blindsPosted = pots.blindsPosted
@@ -85,14 +89,14 @@ case class Board(
       } yield d2
   }
 
-  def endRounds(values: List[Int]): Option[Board] = {
+  def endRounds(values: List[Int]): Option[(Board, Showdown)] = {
     if (!roundsEnd)
       None
     else
       for {
-        p <- pots.distribute(values)
+        ps <- pots.distribute(values)
         h = history.endRounds
-      } yield copy(pots = p, history = h)
+      } yield copy(pots = ps._1, history = h) -> ps._2
   }
 
   def deal(blinds: Int): Option[Board] =

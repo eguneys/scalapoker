@@ -42,7 +42,7 @@ class TableTest extends PokerTest {
         _.joinStack(2, 100)) must beSuccess.like {
         case table =>
           table.nbPlayers must_== 2
-          table.game must beSome
+          table.game must beNone
       }
     }
 

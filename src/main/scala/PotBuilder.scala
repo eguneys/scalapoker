@@ -101,7 +101,7 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int], involved: 
 
 case class Pot(amount: Int, involved: List[StackIndex]) {
 
-  def distribute(values: List[Int]): List[PotDistribution] = {
+  def distribute(values: List[Int]): PotDistribution = {
     val topIndexes = values.zipWithIndex
       .filter(p => involved.contains(p._2))
       .groupBy(_._1)
@@ -109,7 +109,7 @@ case class Pot(amount: Int, involved: List[StackIndex]) {
       .head._2
       .map(_._2)
 
-    topIndexes.map(PotDistribution(_, amount / topIndexes.length))
+    PotDistribution(topIndexes, amount)
   }
 
 }
@@ -123,4 +123,4 @@ object PotBuilder {
 
 }
 
-case class PotDistribution(index: StackIndex, amount: Int)
+case class PotDistribution(involved: List[StackIndex], amount: Int)

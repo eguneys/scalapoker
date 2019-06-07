@@ -11,7 +11,7 @@ case class Table(stacks: Vector[Option[Int]], blinds: Int, game: Option[Game] = 
 
   val minEntryStack = blinds * 10
 
-  lazy val stacksCompact = stacks.filter(_.isDefined).toList
+  lazy val stacksCompact = stacks.toList.flatten
 
   def isEmpty(index: SeatIndex): Boolean =
     stacks.lift(index).exists(!_.isDefined)
@@ -54,7 +54,20 @@ case class Table(stacks: Vector[Option[Int]], blinds: Int, game: Option[Game] = 
     }
   }
 
-  def deal: Valid[Table] = failureNel("not implemented")
+  def deal: Valid[Table] = nbPlayers match {
+    case n if n < 2 => failureNel("not enough players")
+    case _ => {
+      val game = Game(stacksCompact)
+      val table = copy(game = game.deal(blinds))
+      success(table)
+    }
+  }
+
+  def showdown: Valid[(Table, Showdown)] = for {
+    g <- game toValid "No game is playing"
+    endGame <- g.validIf(g.shouldShowdown, "Game is not over")
+    gs <- endGame.endRounds toValid "Cannot end rounds"
+  } yield copy(game = Some(gs._1)) -> gs._2
 
   // private def updateStacks(gameStacks: List[Int]): Vector[Int] = {
   //   stacks.zipWithIndex.foldLeft((stacks, gameStacks)) {

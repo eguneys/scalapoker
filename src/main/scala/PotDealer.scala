@@ -38,10 +38,11 @@ case class PotDealer(
 
   def nextRound(index: StackIndex) = copy(allowRaiseUntil = Some((index - 1 + players) % players))
 
-  def distribute(values: List[Int]): Option[PotDealer] = {
-    val updated = pots.map(_.distribute(values)).foldLeft(Some(this): Option[PotDealer]) {
-      case (d, dists) => dists.foldLeft(d) {
-        case (Some(d), dist) => d.updateStacks(dist.index, dist.amount)
+  def distribute(values: List[Int]): Option[(PotDealer, Showdown)] = {
+    val distributions = pots.map(_.distribute(values))
+    val updated = distributions.foldLeft(Some(this): Option[PotDealer]) {
+      case (d, dist) => dist.involved.foldLeft(d) {
+        case (Some(d), i) => d.updateStacks(i, dist.amount / dist.involved.length)
         case _ => None
     }
     }
@@ -51,7 +52,7 @@ case class PotDealer(
       button = nextButton,
       blindsPosted = false,
       allowRaiseUntil = None
-    ))
+    ) -> distributions)
   }
 
   def blinds(blinds: Int): Option[PotDealer] = for {

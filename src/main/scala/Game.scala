@@ -6,6 +6,8 @@ case class Game(board: Board) {
 
   lazy val moves: List[Move] = actor.validMoves
 
+  lazy val dealer: Dealer = Dealer()
+
   def raiseMove(raise: Raise): Option[Move] = actor.validRaise(raise)
 
   def shouldDeal: Boolean = !board.blindsPosted
@@ -13,6 +15,16 @@ case class Game(board: Board) {
   def shouldShowdown: Boolean = board.roundsEnd
 
   def toAct: Option[StackIndex] = board.toAct
+
+  def flop: List[Card] = dealer.flop
+
+  def turn: Card = dealer.turn
+
+  def river: Card = dealer.river
+
+  def hands = dealer.hands(board.players)
+
+  def handValues = hands.map(_.value.magic)
 
   def apply(act: Act): Option[(Game, Move)] =
     move(act) map { move =>
@@ -27,7 +39,12 @@ case class Game(board: Board) {
 
   def deal(blinds: Int): Option[Game] = updateBoard(_.deal(blinds))
 
-  def endRounds(values: List[Int]) = updateBoard(_.endRounds(values))
+  def endRounds: Option[(Game, Showdown)] = {
+    board.endRounds(handValues) map {
+      case (board, showdown) =>
+        copy(board = board) -> showdown
+    }
+  }
 
   private def move(act: Act) = {
     def findMove(act: Act) = act match {

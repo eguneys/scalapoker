@@ -12,4 +12,6 @@ package object poker
   
   type StackIndex = Int
 
+  type Showdown = List[PotDistribution]
+
 }
