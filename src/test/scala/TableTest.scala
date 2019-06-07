@@ -51,7 +51,7 @@ class TableTest extends PokerTest {
       "allow leave after join" in {
         table.joinStack(1, 100) must beSuccess.like {
           case oneplayer =>
-            oneplayer.leaveStack(1)  must beSome.like {
+            oneplayer.leaveStack(1)  must beSuccess.like {
               case (table, leaveStack) =>
                 table.game must beNone
                 table.nbPlayers must_== 0
@@ -61,12 +61,12 @@ class TableTest extends PokerTest {
       }
 
       "dont allow empty seat leave" in {
-        table.leaveStack(1)  must beNone
+        table.leaveStack(1)  must beFailure
       }
 
       "dont allow bad index to leave" in {
-        table.leaveStack(0) must beNone
-        table.leaveStack(10) must beNone
+        table.leaveStack(0) must beFailure
+        table.leaveStack(10) must beFailure
       }
 
       "should return remaining stack before a round" in {
@@ -75,7 +75,7 @@ class TableTest extends PokerTest {
           _.joinStack(2, 100)
         ) must beSuccess.like {
           case twoplayer =>
-            twoplayer.leaveStack(1)  must beSome.like {
+            twoplayer.leaveStack(1)  must beSuccess.like {
               case (table, leaveStack) =>
                 table.nbPlayers must_== 1
                 leaveStack must_== 100
@@ -90,7 +90,7 @@ class TableTest extends PokerTest {
           _.deal
         ) must beSuccess.like {
           case twoplayer =>
-            twoplayer.leaveStack(1)  must beSome.like {
+            twoplayer.leaveStack(1)  must beSuccess.like {
               case (table, leaveStack) =>
                 table.nbPlayers must_== 1
                 leaveStack must_== 95

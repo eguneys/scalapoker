@@ -18,26 +18,11 @@ trait PokerTest extends Specification with ValidationMatchers {
       stacks.drop(2).to[Vector]))
 
   def makeTable(blinds: Int, capacity: Int = 9): Table = {
-    Table(Vector.fill(capacity)(0),
-      blinds,
-      None)
+    Table(capacity, blinds)
   }
 
   def makeGame(stacks: List[Int]): Game = {
     Game(makeBoard(stacks))
-  }
-
-  implicit def richTable(table: Table) = new {
-
-    def playActs(acts: Act*): Option[Table] = playActList(acts)
-
-    def playActList(acts: Iterable[Act]): Option[Table] = {
-      val vt = acts.foldLeft(Some(table): Option[Table]) { (vt, act) =>
-        val nt = vt flatMap { t => t.playAct(act) map (_._1) }
-        nt
-      }
-      vt
-    }
   }
 
   implicit def richGame(game: Game) = new {
