@@ -2,6 +2,7 @@ package poker
 
 case class PotDealer(
   button: StackIndex,
+  blind: Int,
   blindsPosted: Boolean,
   allowRaiseUntil: Option[StackIndex],
   stacks: AtLeastTwo[Int],
@@ -26,8 +27,6 @@ case class PotDealer(
 
   def toCall(index: StackIndex) = runningPot.toCall(index)
 
-  def toAllIn(index: StackIndex) = stacks(index) - runningPot.bet(index)
-
   lazy val nextButton = (button + 1) % players
 
   lazy val stackIndexes = stacks.toList.zipWithIndex.map(_._2)
@@ -36,7 +35,16 @@ case class PotDealer(
 
   lazy val pots = runningPot.pots(stacks)
 
-  def nextRound(index: StackIndex) = copy(allowRaiseUntil = Some((index - 1 + players) % players))
+  def raiseLimits(index: StackIndex) = {
+    checkAllowRaise(index) map { _ =>
+      val minRaise = runningPot.lastFullRaise
+      val maxRaise = stacks(index) - toCall(index)
+      RaiseLimits(minRaise, maxRaise)
+    }
+  }
+
+  def nextRound(index: StackIndex) = copy(allowRaiseUntil = Some((index - 1 + players) % players),
+    runningPot = runningPot.nextRound(blind))
 
   def distribute(values: List[Int]): Option[(PotDealer, Showdown)] = {
     val distributions = pots.map(_.distribute(values))
@@ -55,11 +63,11 @@ case class PotDealer(
     ) -> distributions)
   }
 
-  def blinds(blinds: Int): Option[PotDealer] = for {
-    d1 <- updateStacks(smallBlind, -blinds / 2)
-    d2 <- d1.updateStacks(bigBlind, -blinds)
+  def blinds: Option[PotDealer] = for {
+    d1 <- updateStacks(smallBlind, -blind / 2)
+    d2 <- d1.updateStacks(bigBlind, -blind)
     d3 = d2.copy(blindsPosted = true)
-    d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, blinds))
+    d4 <- d3.updatePot(_.blinds(smallBlind, bigBlind, blind))
     d5 = d4.copy(allowRaiseUntil = Some(bigBlind))
   } yield d5
 
@@ -88,6 +96,7 @@ case class PotDealer(
       d2 <- d1.updateAllowRaise(index, true)
       d3 <- d2.updatePot(_.raise(index, onTop))
       d4 <- d3.updateStacks(index, -more)
+      _ <- if (d4.stacks(index) <= 0) None else Some(1)
     } yield d4
   }
 
@@ -96,7 +105,15 @@ case class PotDealer(
     d2 <- d1.updatePot(_.fold(index))
   } yield d2
 
-  private def checkAllowRaise(index: StackIndex): Option[PotDealer] = allowRaiseUntil map(_ => this)
+  private def facingFullRaise(index: StackIndex): Boolean = {
+    val more = toCall(index)
+    return (more >= runningPot.lastFullRaise)
+  }
+
+  private def checkAllowRaise(index: StackIndex): Option[PotDealer] = allowRaiseUntil map(_ => this) orElse {
+    if (facingFullRaise(index)) Some(this)
+    else None
+  }
 
   private def updateAllowRaise(index: StackIndex, fullRaise: Boolean) = if (fullRaise)
     Some(copy(allowRaiseUntil = Some((index - 1 + players) % players)))
@@ -129,8 +146,9 @@ case class PotDealer(
 
 object PotDealer {
 
-  def empty(stacks: AtLeastTwo[Int]) = PotDealer(
+  def empty(blinds: Int, stacks: AtLeastTwo[Int]) = PotDealer(
     button = 0,
+    blind = blinds,
     blindsPosted = false,
     allowRaiseUntil = None,
     stacks = stacks,

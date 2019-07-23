@@ -11,12 +11,14 @@ object PotVisual {
 
   def <<(source: String): PotDealer = {
     val potstacks = source split "!"
-    val stacks = potstacks.head split " "
-    val bets = potstacks.drop(1).head
+    val blinds = potstacks.head
+    val stacks = potstacks.drop(1).head split " "
+    val bets = potstacks.drop(2).head
 
-    val bettingActions = potstacks.drop(2).headOption
+    val bettingActions = potstacks.drop(3).headOption
 
     PotDealer(
+      blind = blinds.toInt,
       stacks = stacks.map { _ match {
         case StackPattern(stack, _) => stack.toInt
         case _ => 0
@@ -57,6 +59,10 @@ object PotVisual {
   }
 
   def >>(dealer: PotDealer): String = {
+    val blinds = dealer.blind
+
+    val bettingAction = dealer.allowRaiseUntil.getOrElse("")
+
     val stacks = dealer.stacks.toList.zipWithIndex.map {
       case (stack, idx) if idx == dealer.button =>
         stack + "b"
@@ -74,8 +80,6 @@ object PotVisual {
           dealer.runningPot.bets.getOrElse(i, ".")
       } mkString " ") + ")~"
 
-    val bettingAction = dealer.allowRaiseUntil getOrElse ""
-
-    stacks + "!" + runningPot + "!" + bettingAction
+    blinds + "!" + stacks + "!" + runningPot + "!" + bettingAction
   }
 }

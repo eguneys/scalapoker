@@ -7,12 +7,12 @@ class ActingRoundsTest extends PokerTest {
   "playing a game" should {
 
     "heads up" in {
-      val game = makeGame(List(100, 100))
-      val dealt = game.deal(10).get
+      val game = makeGame(10, List(100, 100))
+      val dealt = game.deal.get
 
       "before post blinds" in {
         addNewLines(game.board.visual) must_== """
-100b 100!0(. .)~!
+10!100b 100!0(. .)~!
 """
       }
 
@@ -20,14 +20,14 @@ class ActingRoundsTest extends PokerTest {
 
         "call" in {
           dealt.playActs(Call) must beGame("""
-90b 90B!10(10 10)~!1
+10!90b 90B!10(10 10)~!1
 C
 """)
         }
 
         "call check" in {
           dealt.playActs(Call, Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 
 H C
 """)
@@ -35,7 +35,7 @@ H C
 
         "call check check" in {
           dealt.playActs(Call, Check, Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 H
 H C
 """)
@@ -44,7 +44,7 @@ H C
 
       "players fold" in {
         dealt.playActs(Call, Fold) must beGame("""
-90b 90B!10(10 10)~!
+10!90b 90B!10(10 10)~!
 F C
 """)
       }

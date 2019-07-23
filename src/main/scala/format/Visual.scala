@@ -3,7 +3,7 @@ package format
 
 /*
  """
- 10b 10 10!(. . .)~!10 (0 1 2)
+ 10b 10 10!(. . .)~!
  H H
  H H H R R R C C C
  H H H H H H C C R H H H H H

@@ -57,8 +57,8 @@ case class Table(stacks: Vector[Option[Int]], blinds: Int, game: Option[Game] = 
   def deal: Valid[Table] = nbPlayers match {
     case n if n < 2 => failureNel("not enough players")
     case _ => {
-      val game = Game(stacksCompact)
-      val table = copy(game = game.deal(blinds))
+      val game = Game(blinds, stacksCompact)
+      val table = copy(game = game.deal)
       success(table)
     }
   }

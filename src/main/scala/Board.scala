@@ -45,6 +45,8 @@ case class Board(
 
   lazy val roundsEnd = ((river && recentActsSettled) || activeBettingPlayersInPot == 1)
 
+  lazy val raiseLimits = toAct flatMap pots.raiseLimits
+
   // 0 1 2 3
   // c c f r 
   // c r . c
@@ -71,9 +73,9 @@ case class Board(
     findToAct(recentActs.reverse, Nil, firstToAct)
   }
 
-  lazy val toAct = if (preflop && !blindsPosted)
+  lazy val toAct = if (!blindsPosted)
     None
-  else if (!(recentActsSettled || roundsEnd)) {
+  else if (!recentActsSettled && !roundsEnd) {
     Some(nextToAct)
   }
     else
@@ -99,15 +101,17 @@ case class Board(
       } yield copy(pots = ps._1, history = h) -> ps._2
   }
 
-  def deal(blinds: Int): Option[Board] =
+  def deal: Option[Board] =
     for {
-      p <- pots.blinds(blinds)
+      p <- pots.blinds
     } yield copy(pots = p)
 
-  def check: Option[Board] = for {
-    toAct <- toAct
-    p <- pots.check(toAct)
-  } yield copy(pots = p)
+  def check: Option[Board] = {
+    for {
+      toAct <- toAct
+      p <- pots.check(toAct)
+    } yield copy(pots = p)
+  }
 
   def call: Option[Board] = for {
     toAct <- toAct
@@ -144,7 +148,7 @@ case class Board(
 
 object Board {
 
-  def empty(stacks: AtLeastTwo[Int]): Board =
-    Board(pots = PotDealer.empty(stacks),
+  def empty(blinds: Int, stacks: AtLeastTwo[Int]): Board =
+    Board(pots = PotDealer.empty(blinds, stacks),
       history = History.empty)
 }

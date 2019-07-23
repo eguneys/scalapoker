@@ -4,12 +4,12 @@ class HeadsUpTest extends PokerTest {
 
   "heads up play" should {
 
-    val game = makeGame(List(100, 100))
-    val headsup = game.deal(10).get
+    val game = makeGame(10, List(100, 100))
+    val headsup = game.deal.get
 
     "should deal cards" in {
       Some(headsup) must beGame("""
-95b 90B!10(5 10)~!1
+10!95b 90B!10(5 10)~!1
 """)
     }
 
@@ -31,12 +31,12 @@ class HeadsUpTest extends PokerTest {
         headsup.playActs(Call) must bePossRaise(Raise(10))
 
         headsup.playActs(Call) must beGame("""
-90b 90B!10(10 10)~!1
+10!90b 90B!10(10 10)~!1
 C
 """)
 
         headsup.playActs(Call, Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 
 H C
 """)
@@ -46,7 +46,7 @@ H C
         headsup.playActs(Fold) must bePoss()
 
         headsup.playActs(Fold) must beGame("""
-95b 90B!10(5 10)~!1
+10!95b 90B!10(5 10)~!1
 F
 """)
       }
@@ -57,14 +57,14 @@ F
       headsup.playActs(Fold) must beSome.like {
         case game =>
           game.endRounds map(_._1) must beGame("""
-95 105b!0(. .)~!
+10!95 105b!0(. .)~!
 """)
       }
     }
 
     "all in " in {
       headsup.playActs(AllIn) must beGame("""
-0b 90B!90(100 10)~!1
+10!0b 90B!90(100 10)~!1
 A
 """)
     }

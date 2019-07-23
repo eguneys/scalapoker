@@ -19,7 +19,7 @@ class VisualTest extends PokerTest {
 
   "The visual board formatter" should {
     "export board" in {
-      f.addNewLines(f >> (makeBoard(List.fill(2)(10)))) must_== newBoardFormat
+      f.addNewLines(f >> (makeBoard(10, List.fill(2)(10)))) must_== newBoardFormat
     }
 
     "import and export is non destructive" in {
@@ -30,40 +30,40 @@ class VisualTest extends PokerTest {
   }
 
   val newBoardFormat = """
-10b 10!0(. .)~!
+10!10b 10!0(. .)~!
 """
 
   val examples = Seq(
     newBoardFormat, """
-10 10b 10!10(. . .)~!
+10!10 10b 10!10(. . .)~!
 
 H H
 """, """
-10b 10 10!10(. . .)~!
+10!10b 10 10!10(. . .)~!
 
 H H
 """, """
-10b 10 10!10(. . .)~!
+10!10b 10 10!10(. . .)~!
 
 H H
 H H H
 H H H
 """, """
-10 10b 10!10(. . .)~!
+90!10 10b 10!10(. . .)~!
 H H H
 """, """
-10 10b 10!100(. . .)~!
+90!10 10b 10!100(. . .)~!
 H H H R10 R10 R10 R10 R10
 """, """
-10b 10 10!20(. . .)~!
+100!10b 10 10!20(. . .)~!
 C R1 R10 C C
 """, """
-10b 10 10!10(. . .)~!
+100!10b 10 10!10(. . .)~!
 H H
 H H H R10 R10 R10 C C C H H H H H H H H R10
 H H H H H H C C R10 H H H H H
 """, """
-10 10b 10!10(. . .)~!
+100!10 10b 10!10(. . .)~!
 C C C
 """
   )

@@ -52,6 +52,9 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int], involved: 
       .map(g => (g._1, g._2.map(_._1))).toList, Nil, Nil).reverse
   }
 
+  def nextRound(blinds: Int): PotBuilder =
+    copy(lastFullRaise = blinds)
+
   def blinds(small: StackIndex, big: StackIndex, amount: Int): Option[PotBuilder] = if (highestBet > 0)
     None
   else for {
@@ -90,8 +93,8 @@ case class PotBuilder(lastFullRaise: Int, bets: Map[StackIndex, Int], involved: 
     val toAmount = bet(index) + amount
     for {
       b1 <- updateBet(index, toAmount)
-      raiseAmount = toAmount - highestBet
-      b2 = if (raiseAmount > lastFullRaise) b1.copy(lastFullRaise = raiseAmount) else b1
+      bet = toAmount - highestBet
+      b2 = if (bet > lastFullRaise) b1.copy(lastFullRaise = bet) else b1
     } yield b2
   }
 

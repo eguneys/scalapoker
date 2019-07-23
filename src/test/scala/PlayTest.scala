@@ -5,18 +5,18 @@ class PlayTest extends PokerTest {
   "playing a game" should {
 
     "heads up" in {
-      val game = makeGame(List(100, 100))
-      val dealt = game.deal(10).get
+      val game = makeGame(10, List(100, 100))
+      val dealt = game.deal.get
 
       "before deal" in {
         Some(game) must beGame("""
-100b 100!0(. .)~!
+10!100b 100!0(. .)~!
 """)
       }
 
       "after deal" in {
         Some(dealt) must beGame("""
-95b 90B!10(5 10)~!1
+10!95b 90B!10(5 10)~!1
 """)
       }
 
@@ -27,14 +27,14 @@ class PlayTest extends PokerTest {
 
         "allow call" in {
           dealt.playActs(Call) must beGame("""
-90b 90B!10(10 10)~!1
+10!90b 90B!10(10 10)~!1
 C
 """)
         }
 
         "allow call check" in {
           dealt.playActs(Call, Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 
 H C
 """)
@@ -46,14 +46,14 @@ H C
 
         "allow call check/check" in {
           dealt.playActs(Call, Check, Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 H
 H C
 """)
 
           dealt.playActs(Call, Check,
             Check, Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 
 H H
 H C
@@ -62,7 +62,7 @@ H C
           dealt.playActs(Call, Check,
             Check, Check,
             Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 H
 H H
 H C
@@ -70,7 +70,7 @@ H C
           dealt.playActs(Call, Check,
             Check, Check,
             Check, Check) must beGame("""
-90b 90B!10(10 10)~!0
+10!90b 90B!10(10 10)~!0
 
 H H
 H H
@@ -81,7 +81,7 @@ H C
             Check, Check,
             Check, Check,
             Check, Check) must beGame("""
-90b 90B!10(10 10)~!
+10!90b 90B!10(10 10)~!
 H H
 H H
 H H
@@ -101,7 +101,7 @@ H C
 
         "allow raise on small blind" in {
           dealt.playActs(Raise(10)) must beGame("""
-80b 90B!10(20 10)~!1
+10!80b 90B!10(20 10)~!1
 R10
 """)
         }
@@ -112,7 +112,7 @@ R10
 
         "allow raise call" in {
           dealt.playActs(Raise(10), Call) must beGame("""
-80b 80B!10(20 20)~!0
+10!80b 80B!10(20 20)~!0
 
 C R10
 """)
@@ -120,14 +120,14 @@ C R10
 
         "allow reraise" in {
           dealt.playActs(Raise(20), Raise(20)) must beGame("""
-70b 50B!20(30 50)~!0
+10!70b 50B!20(30 50)~!0
 R20 R20
 """)
         }
 
         "allow reraise call" in {
           dealt.playActs(Raise(10), Raise(10), Call) must beGame("""
-70b 70B!10(30 30)~!0
+10!70b 70B!10(30 30)~!0
 
 C R10 R10
 """)
@@ -138,7 +138,7 @@ C R10 R10
 
         "allow fold" in {
           dealt.playActs(Fold) must beGame("""
-95b 90B!10(5 10)~!1
+10!95b 90B!10(5 10)~!1
 F
 """)
         }

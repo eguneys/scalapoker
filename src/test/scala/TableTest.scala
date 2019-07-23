@@ -46,6 +46,16 @@ class TableTest extends PokerTest {
       }
     }
 
+    "dont allow join or leave when game is playing" in {
+      val playing = table.seq(
+        _.joinStack(1, 100),
+        _.joinStack(2, 100),
+        _.deal).toOption.get
+
+      playing.joinStack(3, 100) must beFailure
+      playing.leaveStack(1) must beFailure
+    }
+
     "leave table" in {
 
       "allow leave after join" in {
@@ -83,7 +93,7 @@ class TableTest extends PokerTest {
         }
       }
 
-      "should return remaining stack after a round" in {
+      "should return remaining stack after a game" in {
         table.seq(
           _.joinStack(1, 100),
           _.joinStack(2, 100),

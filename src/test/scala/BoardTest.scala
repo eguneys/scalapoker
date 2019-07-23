@@ -4,13 +4,13 @@ class BoardTest extends PokerTest {
 
   "a board" should {
 
-    val twoPlayer = makeBoard(List.fill(2)(10))
-    val threePlayer = makeBoard(List.fill(3)(10))
-    val fourPlayer = makeBoard(List.fill(4)(10))
+    val twoPlayer = makeBoard(10, List.fill(2)(10))
+    val threePlayer = makeBoard(10, List.fill(3)(10))
+    val fourPlayer = makeBoard(10, List.fill(4)(10))
 
-    val twoPlayerGame = makeGame(List(100, 100)).deal(10).get
-    val threePlayerGame = makeGame(List(100, 100, 100)).deal(10).get
-    val fourPlayerGame = makeGame(List(100, 100, 100, 100)).deal(10).get
+    val twoPlayerGame = makeGame(10, List(100, 100)).deal.get
+    val threePlayerGame = makeGame(10, List(100, 100, 100)).deal.get
+    val fourPlayerGame = makeGame(10, List(100, 100, 100, 100)).deal.get
 
     "decide small blind and big blind" in {
 
@@ -128,7 +128,7 @@ class BoardTest extends PokerTest {
         }
 
         twoPlayerGame.playActs(Fold) must beGame("""
-95b 90B!10(5 10)~!1
+10!95b 90B!10(5 10)~!1
 F
 """)
 
@@ -201,14 +201,14 @@ F
 
     "after all in not a full raise" should {
 
-      val game = makeGame(List(1500, 1000, 750)).deal(200).get
+      val game = makeGame(200, List(1500, 1000, 750)).deal.get
 
       val game2 = game.playActs(Raise(300), Call, AllIn)
 
 
       "find to act" in {
         game2 must beGame("""
-1000b 500s 0B!300(500 500 750)~!
+200!1000b 500s 0B!300(500 500 750)~!
 A C R300
 """)
 
@@ -221,7 +221,7 @@ A C R300
 
       "allow call" in {
         game2.get.playActs(Call, Call) must beGame("""
-750b 250s 0B!300(750 750 750)~!0
+200!750b 250s 0B!200(750 750 750)~!0
 
 C C A C R300
 """)
@@ -234,7 +234,7 @@ C C A C R300
       }
 
       "full raise rule dont allow second allin" in {
-        val game = makeGame(List(7500, 810, 820)).deal(200).get
+        val game = makeGame(200, List(7500, 810, 820)).deal.get
 
         val game2 = game.playActs(
           Raise(300), Call, Raise(300),
@@ -244,14 +244,14 @@ C C A C R300
       }
 
       "full raise rule dont allow rereaise extra call" in {
-        val game = makeGame(List(7500, 810, 7500)).deal(200).get
+        val game = makeGame(200, List(7500, 810, 7500)).deal.get
 
         val game2 = game.playActs(
           Raise(300), Call, Raise(300),
           Call, AllIn)
 
         game2 must beGame("""
-6700b 0s 6700B!300(800 810 800)~!
+200!6700b 0s 6700B!300(800 810 800)~!
 A C R300 C R300
 """)
 
@@ -264,14 +264,14 @@ A C R300 C R300
       }
 
       "full raise rule allow reraise next round" in {
-        val game = makeGame(List(7500, 800, 7500)).deal(200).get
+        val game = makeGame(200, List(7500, 800, 7500)).deal.get
 
         val game2 = game.playActs(
           Raise(300), Call, Raise(300),
           Call, AllIn)
 
         game2 must beGame("""
-6700b 0s 6700B!300(800 800 800)~!0
+200!6700b 0s 6700B!200(800 800 800)~!0
 
 A C R300 C R300
 """)

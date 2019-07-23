@@ -26,6 +26,8 @@ case class Game(board: Board) {
 
   def handValues = hands.map(_.value.magic)
 
+  def raiseLimits = board.raiseLimits
+
   def apply(act: Act): Option[(Game, Move)] =
     move(act) map { move =>
       apply(move) -> move
@@ -37,7 +39,7 @@ case class Game(board: Board) {
     )
   }
 
-  def deal(blinds: Int): Option[Game] = updateBoard(_.deal(blinds))
+  def deal: Option[Game] = updateBoard(_.deal)
 
   def endRounds: Option[(Game, Showdown)] = {
     board.endRounds(handValues) map {
@@ -63,7 +65,7 @@ case class Game(board: Board) {
 
 object Game {
 
-  def apply(stacks: List[Int]): Game =
-    Game(Board.empty(stacks))
+  def apply(blinds: Int, stacks: List[Int]): Game =
+    Game(Board.empty(blinds, stacks))
 
 }
